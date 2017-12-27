@@ -1,0 +1,243 @@
+#stage
+{
+    -webkit-transform-origin:  0% 0%;
+    transform-origin: 0% 0%;
+    -ms-transform-origin: 0% 0%;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-transform: translate3d(0, 0, 0);
+
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+    -moz-perspective: 1000px;
+    -o-perspective: 1000px;
+
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-image-width: 0;
+
+    position: absolute; 
+    top: 0;
+    left:0;
+    /*image-rendering: pixelated;*/
+
+}
+
+.element{
+    -webkit-transform-origin:  0% 0%;
+    transform-origin: 0% 0%;
+    -ms-transform-origin: 0% 0%;
+}
+
+body{
+    overflow: hidden;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    margin: 0;
+    padding: 0;
+    transform: translateZ(0px);
+    -ms-transform: translateZ(0px);/* IE 9 */
+    -moz-transform: translateZ(0px);/* Firefox */
+    -webkit-transform: translateZ(0px);/* Safari and Chrome */
+    -o-transform: translateZ(0px);/* Opera */
+    border: none;
+    border-image-width: 0;
+    line-height: 0;
+    background-color: black;
+    width: 100%;
+    height: 100%;
+}
+
+* {padding: 0; margin: 0}
+
+.unselectable {
+    -moz-user-select: -moz-none;
+    -webkit-user-select: none;
+}
+
+#topToolbar{
+    background-color: #f5fae4;
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-bottom: 1px solid #8d8d8d;
+    padding: 8px;
+}
+
+#sideToolbar{
+    background-color: #f5fae4;
+    position: absolute;
+    right: 0;
+    top: 0;
+    border-left: 1px solid #8d8d8d;
+}
+/*
+.controls{
+    width: 100%;
+    text-align: right;
+}
+
+.controls input{
+    margin: 10px 10px 0 10px;
+    height: 20px;
+    width: 160px;
+    padding: 5px;
+    font-size: 20px;
+    border-radius: 4px;
+    border: 1px solid #6d6d6d;
+}
+
+.controls label{
+    height: 20px;
+    font-family: 'Arial Black';
+    color: #8d8d8d;
+        
+}
+
+.small-controls{
+    width: 50%;
+    padding: 0;
+    margin: 0;
+    float: left;
+}
+
+.small-controls input{
+    width: 60px;
+}*/
+
+.none {
+    display: none;
+}
+
+#side-toolbar-navigation{
+    margin-bottom: 10px;
+    background-color: white;
+}
+
+.nav-bar-btn{
+    padding: 10px;   
+    margin: 0px;   
+    border-left: 1px solid transparent;
+    border-right: 1px solid transparent;
+    color: #818181;
+}
+
+.nav-bar-btn:hover{
+    background-color: #e3f7a5;
+    cursor: pointer;
+}
+
+.nav-bar-btn.active{
+    background-color: #f5fae4;
+    border-left: 1px solid #8d8d8d;
+    border-right: 1px solid #8d8d8d;
+    border-bottom: 1px solid #f5fae4;
+}
+
+.controls input[type='file']{
+    font-size: 11px;
+}
+
+.libraryItem{
+    width:90px;
+    height:90px;
+    margin: 10px 0px 0px 10px;
+    border: 1px solid transparent;
+}
+
+.libraryItem:hover{
+    border: 1px solid #bbed27;
+    cursor: pointer;
+}
+
+#imageLibraryContent{
+    overflow-y: scroll;
+    padding-top: 10px;
+}
+
+#textUpdatePanel{
+    position: absolute;
+    z-index: 200;
+    display: none;
+    padding: 10px;
+    border: 1px solid #a1a1a1;
+}
+
+#textUpdatePanel textarea{
+    width: 300px;
+    height: 100px;
+    resize: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-size: 16px;
+    display: inline;
+    clear: both;
+}
+
+#contextMenu{
+    z-index: 10000; 
+    position: absolute; 
+    display: none; 
+    height: 133px; 
+    width: 158px; 
+    
+    left: 50%;
+    top: 50%;
+}
+
+
+/**********************************/
+
+.colorpicker-2x .colorpicker-saturation {
+    width: 200px;
+    height: 200px;
+}
+
+.colorpicker-2x .colorpicker-hue,
+.colorpicker-2x .colorpicker-alpha {
+    width: 30px;
+    height: 200px;
+}
+
+.colorpicker-2x .colorpicker-preview,
+.colorpicker-2x .colorpicker-preview div {
+    height: 30px;
+    font-size: 16px;
+    line-height: 160%;
+}
+
+.colorpicker-saturation .colorpicker-guide,
+.colorpicker-saturation .colorpicker-guide i {
+    height: 10px;
+    width: 10px;
+    border-radius: 10px;
+}
+
+/**************************************/
+
+.content{
+    text-align: right;
+}
+
+
+.content div.big{
+    font-size: inherit;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.content div.big input{
+    width: 240px;
+    
+}
+
+.content div.small{
+    font-size: inherit;
+    width: 160px;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.content div.small input{
+    font-size: inherit;
+    width: 80px;
+}
