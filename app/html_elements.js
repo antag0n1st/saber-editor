@@ -8,7 +8,7 @@
     HtmlElements.INPUT_TYPE_ALL = 0;
     HtmlElements.INPUT_TYPE_NUMBER = 1;
     HtmlElements.INPUT_TYPE_BOOLEAN = 2;
-   
+
     // name, value, className, event, isDisabled, tooltip, method, inputType
     HtmlElements.createInput = function (options) {
 
@@ -25,12 +25,12 @@
         var className = options.class || 'big';
         var method = options.method || "propertiesBinder.onPropertyChange";
         var tooltip = options.tooltip || "";
-        var inputType = options.inputType || HtmlElements.INPUT_TYPE_ALL;        
+        var inputType = options.inputType || HtmlElements.INPUT_TYPE_ALL;
         var name = options.name || '';
         var displayName = options.displayName || name;
-        if(displayName === name){
+        if (displayName === name) {
             displayName = displayName.replace('_', ' ').capitalize();
-        }     
+        }
         var event_string = options.event ? options.event.name + '="' + options.event.callback + '"' : "";
 
         var id = "htmlElementId-" + PIXI.utils.uid();
@@ -50,6 +50,22 @@
         html += ' />';
 
         html += '</div>';
+
+        return {html: html, id: id};
+
+    };
+
+    HtmlElements.createImageButton = function (imageName, method, className, tooltip) {
+
+        var id = "htmlElementId-" + PIXI.utils.uid();
+
+        var html = '';
+        html += '<img class="' + className + '" ';
+        html += ' id="' + id + '" ';
+        html += ' title="' + tooltip + '" ';
+        html += ' src="assets/images/icons/' + imageName + '.png" ';
+        html += ' onclick="app.navigator.currentScreen.' + method + '(\'\')" ';
+        html += '/>';
 
         return {html: html, id: id};
 

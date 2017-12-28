@@ -18,7 +18,7 @@
 
         this.canResize = false;
         this.hasFrame = false;
-
+        
     };
 
     Layer.prototype.build = function (data) {
@@ -48,6 +48,11 @@
         o.name = this.name;
         o.factor = this.factor;
         o.isActive = this.isActive;
+        
+        o.scale.x = 1;
+        o.scale.y = 1;
+        o.position.x = 0;
+        o.position.y = 0;
 
         return o;
 

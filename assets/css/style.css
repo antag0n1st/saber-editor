@@ -241,3 +241,14 @@ body{
     font-size: inherit;
     width: 80px;
 }
+
+.image-button{
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    margin-left: 10px;
+}
+
+.image-button:hover{
+    background-color: #cccccc;
+}

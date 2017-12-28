@@ -18,8 +18,8 @@
 
         this.createTabs();
         this.bindHTML();
-        
-        this.tree = new LayersTree(this.editor,this);
+
+        this.tree = new LayersTree(this.editor, this);
 
     };
 
@@ -114,6 +114,8 @@
 
         this.localFileLoaderBtn = document.getElementById('localFileLoaderBtn');
         this.localFileLoaderBtn.onchange = this.onLocalFileLoaderBtn.bind(this);
+
+        this.alignButtons = document.getElementById('alignButtons');
 
         // SETTINGS PANEL
 
@@ -222,10 +224,10 @@
 
     HtmlInterface.prototype.onLayers = function () {
 
-       // create layers tree
-    
-     
-       this.tree.build();
+        // create layers tree
+
+
+        this.tree.build();
 
 
     };
@@ -247,7 +249,7 @@
 
     // This method is inivoked when the zoom slider is moved
     HtmlInterface.prototype.onZoomSlider = function (data) {
-        this.editor.zoomInAt(1 + data.newValue, new V(app.width / 2, app.height / 2), 300);
+        this.editor.zoomInAt(data.newValue, new V(app.width / 2, app.height / 2), 300);
     };
 
     // called when the save button is clicked
@@ -257,8 +259,8 @@
 
         data.objects = this.editor.importer.export();
         data.screenPosition = {
-            x: this.editor.content.position.x,
-            y: this.editor.content.position.y
+            x: this.editor._screenPosition.x,
+            y: this.editor._screenPosition.y
         };
 
         var jsonString = JSON.stringify(data);
@@ -288,6 +290,136 @@
 
             $("#addLayerModal").modal('hide');
         }
+
+
+
+    };
+
+    /// align elements
+
+    HtmlInterface.prototype.alignSelectedObjects = function (type) {
+
+        var edges = this.findAlignEdges();
+
+        var batch = new CommandBatch();
+
+        for (var i = 0; i < this.editor.selectedObjects.length; i++) {
+            var object = this.editor.selectedObjects[i];
+            var bounds = object.getBounds();
+
+            var dx = 0;
+            var dy = 0;
+
+            if (type === "top") {
+                dy = edges.minY - bounds.top;
+            } else if (type === "right") {
+                dx = edges.maxX - bounds.right;
+            } else if (type === "bottom") {
+                dy = edges.maxY - bounds.bottom;
+            } else if (type === "left") {
+                dx = edges.minX - bounds.left;
+            } else if (type === "centerX") {
+                var cy = edges.minY + (edges.maxY - edges.minY) / 2;
+                dy = cy - bounds.top - (bounds.bottom - bounds.top) / 2;
+            } else if (type === "centerY") {
+                var cx = edges.minX + (edges.maxX - edges.minX) / 2;
+                dx = cx - bounds.left - (bounds.right - bounds.left) / 2;
+            }
+
+            var moveCommand = new CommandMove(object, object.position.x + dx, object.position.y + dy);
+
+            batch.add(moveCommand);
+
+        }
+
+        this.editor.commands.add(batch);
+
+
+    };
+
+    HtmlInterface.prototype.onAlignTop = function () {
+        this.alignSelectedObjects('top');
+    };
+
+    HtmlInterface.prototype.onAlignRight = function () {
+        this.alignSelectedObjects('right');
+    };
+
+    HtmlInterface.prototype.onAlignBottom = function () {
+        this.alignSelectedObjects('bottom');
+    };
+
+    HtmlInterface.prototype.onAlignLeft = function () {
+        this.alignSelectedObjects('left');
+    };
+
+    HtmlInterface.prototype.onAlignCenterX = function () {
+        this.alignSelectedObjects('centerX');
+    };
+
+    HtmlInterface.prototype.onAlignCenterY = function () {
+        this.alignSelectedObjects('centerY');
+    };
+
+    HtmlInterface.prototype.findAlignEdges = function () {
+        var objects = this.editor.selectedObjects;
+        var b = objects[0].getBounds();
+
+        var minX = b.left;
+        var maxX = b.right;
+        var minY = b.top;
+        var maxY = b.bottom;
+
+        for (var i = 0; i < objects.length; i++) {
+
+            var bounds = objects[i].getBounds();
+
+            if (minX > bounds.left) {
+                minX = bounds.left;
+            }
+
+            if (maxX < bounds.right) {
+                maxX = bounds.right;
+            }
+
+            if (minY > bounds.top) {
+                minY = bounds.top;
+            }
+
+            if (maxY < bounds.bottom) {
+                maxY = bounds.bottom;
+            }
+
+        }
+
+        return {
+            minX: minX,
+            maxX: maxX,
+            minY: minY,
+            maxY: maxY
+        };
+
+    };
+
+    HtmlInterface.prototype.hideAlignButtons = function (objects) {
+        this.alignButtons.innerHTML = '';
+    };
+
+    HtmlInterface.prototype.showAlignButtons = function (objects) {
+
+
+
+
+        var html = HtmlElements.createImageButton('align_top', 'htmlInterface.onAlignTop', 'image-button').html;
+        html += HtmlElements.createImageButton('align_right', 'htmlInterface.onAlignRight', 'image-button').html;
+        html += HtmlElements.createImageButton('align_bottom', 'htmlInterface.onAlignBottom', 'image-button').html;
+        html += HtmlElements.createImageButton('align_left', 'htmlInterface.onAlignLeft', 'image-button').html;
+        html += HtmlElements.createImageButton('align_center_x', 'htmlInterface.onAlignCenterX', 'image-button').html;
+        html += HtmlElements.createImageButton('align_center_y', 'htmlInterface.onAlignCenterY', 'image-button').html;
+
+        this.alignButtons.innerHTML = html;
+
+
 
 
 

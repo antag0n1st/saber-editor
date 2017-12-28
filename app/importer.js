@@ -44,9 +44,12 @@
         
         batch.execute();
         
+       //this.editor.commands.add(batch);
+        
     };
     
     Importer.prototype.importChildren = function(parent,children,batch){
+        var unwrappedObjects = [];
         for (var i = 0; i < children.length; i++) {
             var o = children[i];
             
@@ -60,7 +63,10 @@
                 this.importChildren(object,o.children,batch);
             }
             
+            unwrappedObjects.push(object);
+            
         }
+        return unwrappedObjects;
     };
     
     Importer.prototype.export = function(){
@@ -68,10 +74,8 @@
         var exportedObjects = [];
         
         for (var i = 0; i < this.editor.content.children.length; i++) {
-            var object =this.editor.content.children[i];
-            if(object.export){
-                exportedObjects.push(object.export());
-            }
+            var layer =this.editor.content.children[i];
+            exportedObjects.push(layer.export());
         }
         
         return exportedObjects;

@@ -33,11 +33,12 @@
 
         /////////
 
-      
+
         this.selectedObjects = []; //
         this.isSelectionStarted = false;
         this.isHandleTouched = false;
         this.isClickedInsideObject = false;
+        this.isClickedInsideSameObject = false;
         this.didDrag = false;
         this.dragPosition = new V();
         this.clickedObject = null;
@@ -46,8 +47,10 @@
         this.initialRotation = 0;
         this.lastCickTime = 0;
         this.handleTouchedType = '';
-        this._zoom = 1;
+        this._zoom = 0;
+        this._zoomPoint = null;
         this._screenPosition = new V();
+        this.clipboard = null;
 
         this.activeLayer = null;
 
@@ -150,12 +153,8 @@
 
         } else {
             var cp = new V().copy(this.activeLayer.getGlobalPosition());
-//            var x = this.activeLayer.position.x - this.content.position.x;
-//            var y = this.activeLayer.position.y - this.content.position.y;
             p = V.substruction(app.input.point, cp);
-//            p.x += x;
-//            p.y += y;
-            p.scale(1 / this._zoom);
+            p.scale(1 / this.activeLayer.scale.x);
         }
 
         object.position.set(p.x, p.y);
@@ -189,53 +188,38 @@
     };
 
     MainScreen.prototype.addObjectToSelection = function (object) {
-        this.selectedObjects.push(object); //TODO check in case it is already there
-        object.select();
+        if (this.selectedObjects.indexOf(object) === -1) {
+            this.selectedObjects.push(object); //TODO check in case it is already there
+            object.select();
+            this.onSelectionChange();
+        }
     };
 
     MainScreen.prototype.deselectObject = function (object) {
-        this.selectedObjects.removeElement(object);
-        object.deselect();
+        if (this.selectedObjects.indexOf(object) !== -1) {
+            this.selectedObjects.removeElement(object);
+            object.deselect();
+            this.onSelectionChange();
+        }
     };
 
     MainScreen.prototype.deselectAllObjects = function () {
 
-        for (var i = 0; i < this.selectedObjects.length; i++) {
-            var object = this.selectedObjects[i];
-            object.deselect();
-        }
+        if (this.selectedObjects.length) {
 
-        this.selectedObjects = [];
+            for (var i = 0; i < this.selectedObjects.length; i++) {
+                var object = this.selectedObjects[i];
+                object.deselect();
+            }
+
+            this.selectedObjects = [];
+
+            this.onSelectionChange();
+        }
 
     };
 
-    MainScreen.prototype.checkSelection = function (x, y, width, height,children) {
-        
-        children = children ? children : this.activeLayer.children;
 
-        
-
-         for (var i = children.length - 1; i >= 0; i--) {
-            var object = children[i];
-
-            if (this.checkSelection(x, y, width, height,object.children)) {
-                return true;
-            }
-
-            var rectangle = object.getSensor();
-            if (SAT.testPolygonPolygon(this.selectionRectangle, rectangle)) {
-                if (!object.isSelected) {
-                    this.addObjectToSelection(object);
-                }
-            } else {
-                this.deselectObject(object);
-            }
-            return true;
-        }
-        
-        return false;
-
-    };
 
     MainScreen.prototype.renderPolygon = function (polygon) {
 
@@ -250,30 +234,68 @@
 
     };
 
-    MainScreen.prototype.onMouseDown = function (event, sender) {
+    // check agianst the selection rectangle
+    MainScreen.prototype.checkSelection = function (x, y, width, height, children) {
 
-        if (this.shortcuts.isSpacePressed) {
-            this.screenMouseOffset = V.substruction(this.content.position, event.point);
+        children = children ? children : this.activeLayer.children;
 
-            return;
+        for (var i = children.length - 1; i >= 0; i--) {
+            var object = children[i];
+
+            if (this.checkSelection(x, y, width, height, object.children)) {
+                // return true;
+            }
+
+            var rectangle = object.getSensor();
+            if (SAT.testPolygonPolygon(this.selectionRectangle, rectangle)) {
+                if (!object.isSelected) {
+                    object.save();
+                    this.addObjectToSelection(object);
+                }
+            } else if (object.isSelected) {
+                this.deselectObject(object);
+            }
         }
 
-        // first reset the values
-        this.didDrag = false;
-        this.isClickedInsideObject = false;
-        this.isSelectionStarted = false;
-        this.isHandleTouched = false;
-        this.handleTouchedType = '';
-        this.mouseDownPosition.copy(event.point);
+    };
 
-        this.htmlInterface.contextMenu.close();
+    // check if the point is inside some object
+    MainScreen.prototype.checkPointInObject = function (children, event) {
 
-        if (this.checkSelectedObjects(this.activeLayer.children, event)) {
-            return;
+        for (var i = children.length - 1; i >= 0; i--) {
+
+            var object = children[i];
+
+            var obj = this.checkPointInObject(object.children, event);
+            if (obj) {
+                return obj;
+            }
+
+            // check if the object is clicked
+
+            var sensor = object.getSensor();
+            if (SAT.pointInPolygon(event.point, sensor)) {
+
+//               // this.isClickedInsideObject = true;
+//               // this.clickedObject = object;
+//
+//                if (object.isSelected) {
+//                    // we gonna drag
+////                    for (var j = 0; j < this.selectedObjects.length; j++) {
+////                        this.selectedObjects[j].save();
+////                    }
+//                } else {
+//                    // select it right away
+//                   // this.deselectAllObjects();
+//                   // this.addObjectToSelection(object);
+//                   // object.save();
+//                }
+
+                return object;
+            }
         }
 
-        this.checkForSelection(this.activeLayer.children,event);
-
+        return false;
     };
 
     // check already selected objects for drag / resize / rotate ...
@@ -313,40 +335,81 @@
 
         return false;
     };
-    
-    MainScreen.prototype.checkForSelection = function (children, event) {
-        for (var i = children.length - 1; i >= 0; i--) {
-            var object = children[i];
 
-            if (this.checkForSelection(object.children, event)) {
-                return true;
-            }
 
-            // check if the object is clicked
 
-            var sensor = object.getSensor();
-            if (SAT.pointInPolygon(event.point, sensor)) {
+    MainScreen.prototype.onMouseDown = function (event, sender) {
 
-                this.isClickedInsideObject = true;
-                this.clickedObject = object;
+        if (this.shortcuts.isSpacePressed) {
+            this.screenMouseOffset = V.substruction(this._screenPosition, event.point);
 
+            return;
+        }
+
+        // first reset the values
+        this.didDrag = false;
+        this.isClickedInsideObject = false;
+        this.isClickedInsideSameObject = false;
+        this.isSelectionStarted = false;
+        this.isHandleTouched = false;
+        this.handleTouchedType = '';
+        this.mouseDownPosition.copy(event.point);
+
+        this.htmlInterface.contextMenu.close();
+
+        if (this.checkSelectedObjects(this.activeLayer.children, event)) {
+            return;
+        }
+
+        var object = this.checkPointInObject(this.activeLayer.children, event);
+
+        if (object) {
+
+            if (this.shortcuts.isCtrlPressed) {
                 if (object.isSelected) {
-                    // we gonna drag
-                    for (var j = 0; j < this.selectedObjects.length; j++) {
-                        this.selectedObjects[j].save();
-                    }
+                    this.deselectObject(object);
                 } else {
-                    // select it right away
-                    this.deselectAllObjects();
                     this.addObjectToSelection(object);
-                    object.save();
+                }
+            } else {
+                var isOneOfUs = false;
+
+                for (var i = 0; i < this.selectedObjects.length; i++) {
+                    var o = this.selectedObjects[i];
+                    o.save();
+                    if (o.id === object.id) {
+                        isOneOfUs = true;
+                        this.isClickedInsideObject = true;
+                        this.clickedObject = object;
+                    }
+
+
+
                 }
 
-                return true;
+
+
+                if (!isOneOfUs) {
+
+                    this.deselectAllObjects();
+
+                    object.save();
+                    if (this.clickedObject && object.id === this.clickedObject.id) {
+                        this.isClickedInsideSameObject = true;
+                    } else {
+
+                    }
+                    this.isClickedInsideObject = true;
+                    this.clickedObject = object;
+                }
             }
+
+        } else {
+            this.clickedObject = null;
+            // for ctrl select more object this will need to change
+            this.deselectAllObjects();
         }
-        
-        return false;
+
     };
 
     MainScreen.prototype.onMouseMove = function (event, sender) {
@@ -354,6 +417,10 @@
         if (this.shortcuts.isSpacePressed && !this.selectionRectangle) {
             var p = V.addition(this.screenMouseOffset, event.point);
             this.moveScreenTo(p);
+            return;
+        }
+
+        if (this.shortcuts.isCtrlPressed) {
             return;
         }
 
@@ -382,7 +449,6 @@
             gp.y += -o.anchor.y * o._height * o.scale.y + o._height / 2 * o.scale.y;
 
             var distance = Math.getDistance(event.point, gp) - 20;
-            // log(distance)
 
             var scale = distance / this.initialSize;
 
@@ -390,29 +456,43 @@
             this.clickedObject.updateSensor();
             this.clickedObject.updateFrame();
 
-        } else if (!this.isClickedInsideObject) {
+        } else if (this.selectedObjects.length) {
 
+            if (!this.isSelectionStarted) {
+
+                // dragging
+
+                this.didDrag = true;
+
+
+
+                var dragBy = V.substruction(event.point, this.mouseDownPosition);
+                dragBy.scale(1 / this.activeLayer.scale.x);
+
+                for (var i = 0; i < this.selectedObjects.length; i++) {
+                    var object = this.selectedObjects[i];
+                    object.dragBy(dragBy);
+                }
+
+            }
+
+        } else {
             this.isSelectionStarted = true;
+
+        }
+
+
+
+        if (this.isSelectionStarted) {
+
+            // making a selection
 
             var width = event.point.x - this.mouseDownPosition.x;
             var height = event.point.y - this.mouseDownPosition.y;
-          
+
             // quick! , start dragging this object
             this.selectionRectangle = new SAT.Box(new V(this.mouseDownPosition.x, this.mouseDownPosition.y), width, height).toPolygon();
-           // log(this.selectionRectangle.pos)
             this.checkSelection(this.mouseDownPosition.x, this.mouseDownPosition.y, width, height);
-
-        } else {
-
-            this.didDrag = true;
-
-            var dragBy = V.substruction(event.point, this.mouseDownPosition);
-            dragBy.scale(1 / this._zoom);
-
-            for (var i = 0; i < this.selectedObjects.length; i++) {
-                var object = this.selectedObjects[i];
-                object.dragBy(dragBy);
-            }
 
         }
 
@@ -421,7 +501,8 @@
     };
 
     MainScreen.prototype.onMouseUp = function (event, sender) {
-
+        
+      
         // app.input.restoreCursor();
 
         if (this.shortcuts.isSpacePressed && !this.selectionRectangle) {
@@ -441,11 +522,22 @@
         }
 
         if (this.isClickedInsideObject) {
+            
+           
             // it can be selection if dragging did not take place
             if (!this.didDrag) {
-                this.deselectAllObjects();
-                this.addObjectToSelection(this.clickedObject);
+
+                if (this.shortcuts.isCtrlPressed) {
+
+                } else if(!this.selectionRectangle) {
+                    this.deselectAllObjects();
+                    this.addObjectToSelection(this.clickedObject);
+                }
+
+
             } else {
+                
+              
 
                 var batch = new CommandBatch();
                 for (var i = 0; i < this.selectedObjects.length; i++) {
@@ -476,7 +568,10 @@
             } else if (this.handleTouchedType === 'rotate') {
 
             } else if (!this.isSelectionStarted) {
-                this.deselectAllObjects();
+
+                //this.checkPointInObject(this.activeLayer.children, event);
+
+                // this.deselectAllObjects();
             }
 
         }
@@ -488,6 +583,53 @@
         this.lastCickTime = app.pixi.ticker.lastTime;
 
 
+
+    };
+
+    MainScreen.prototype.copySelection = function () {
+
+        if (this.selectedObjects.length) {
+
+            this.clipboard = [];
+
+            for (var i = 0; i < this.selectedObjects.length; i++) {
+                this.clipboard.push(this.selectedObjects[i]);
+            }
+        }
+
+    };
+
+    MainScreen.prototype.paste = function () {
+
+        if (this.clipboard && this.clipboard.length) {
+
+
+            var batch = new CommandBatch();
+
+            var copies = [];
+
+            for (var i = 0; i < this.clipboard.length; i++) {
+                var object = this.clipboard[i];
+                var jsonObject = object.export();
+                jsonObject.position.x += 30;
+                jsonObject.position.y += 30;
+
+                var obs = this.importer.importChildren(object.parent, [jsonObject], batch);
+                copies.push(obs[0]);
+            }
+
+
+            this.commands.add(batch);
+
+            this.deselectAllObjects();
+
+            for (var i = 0; i < copies.length; i++) {
+                var co = copies[i];
+                this.addObjectToSelection(co);
+                this.copySelection();
+            }
+
+        }
 
     };
 
@@ -524,19 +666,17 @@
     };
 
     MainScreen.prototype.onWheel = function (event, sender) {
-        var s = 0.05;
-        var scale = 1;
-        if (event.point.y > 0) {
-            scale += s;
-        } else {
-            scale -= s;
+
+        var scale = 0.1;
+        if (event.point.y < 0) {
+            scale = -0.1;
         }
         var p = new V(app.input.point.x, app.input.point.y);
 
-        var toScale = this._zoom * scale;
-        this.htmlInterface.zoomSlider.setValue(toScale - 1);
-//        //  log(this._zoom)
-//        //  log(toScale);
+        var toScale = this._zoom + scale;
+
+        this.htmlInterface.zoomSlider.setValue(toScale);
+
         this.zoomInAt(toScale, p, 200);
     };
 
@@ -571,7 +711,7 @@
 
         // draw coordinate System
 
-        var p = this.content.position;
+        var p = this._screenPosition;
         //var p = new V();
 
         this.graphics.lineStyle(1, 0x0000FF, 1);
@@ -632,15 +772,6 @@
 
             this.importer.import(data.objects);
 
-//            var batch = new CommandBatch();
-//
-//            for (var i = 0; i < objectsToImport.length; i++) {
-//                var object = objectsToImport[i];
-//                var command = new CommandAdd(object, this.content, this);
-//                batch.add(command);
-//            }
-//
-//            batch.execute();
         }
 
         this.moveScreenTo(data.screenPosition);
@@ -648,69 +779,89 @@
     };
 
     MainScreen.prototype.moveScreenTo = function (p) {
+
+        var dp = V.substruction(p, this._screenPosition);
         this._screenPosition = p;
-        this.content.position.set(p.x, p.y);
         this.repatable.tilePosition.set(p.x, p.y);
 
         // adjust the layers acording to their factor
 
         for (var i = 0; i < this.content.children.length; i++) {
             var layer = this.content.children[i];
-            var x = -p.x + p.x * layer.factor;
-            var y = -p.y + p.y * layer.factor;
-
-
-            layer.position.set(x, y);
+            var np = new V().copy(dp).scale(layer.factor * layer.scale.x);
+            this.adjustLayerPosition(layer, np);
         }
 
 
     };
 
+    MainScreen.prototype.adjustLayerPosition = function (layer, np) {
+        layer.position.x += np.x;
+        layer.position.y += np.y;
+    };
+
     MainScreen.prototype.zoomInAt = function (scale, zoomPoint, duration) {
+
+        if (!this._zoomPoint) {
+            this._zoomPoint = new V().copy(zoomPoint);
+        }
+
         Actions.stopByTag('zoom');
         var zoom = this._zoom;
         scale = scale - zoom;
         new Stepper(function (step) {
-            this.setZoom(zoom + scale * step, zoomPoint);
-        }, duration, null, new Bezier(.46, .79, .79, .99), null, this).run('zoom');
+            for (var i = 0; i < this.content.children.length; i++) {
+                var layer = this.content.children[i];
+                this.setZoom(zoom + scale * step, this._zoomPoint, layer);
+            }
+
+        }, duration, null, new Bezier(.46, .79, .79, .99), function () {
+
+            if (this._zoom === 0) {
+                this._zoomPoint = null;
+            }
+
+        }, this).run('zoom');
     };
 
-    MainScreen.prototype.setZoom = function (scale, point) {
+    MainScreen.prototype.setZoom = function (scale, point, layer) {
 
+        this._zoom = scale; // set global zoom
 
-        var cp = this.content.getGlobalPosition();
+        var cp = new V().copy(layer.getGlobalPosition());
 
         var aw = point.x - cp.x;
         var ah = point.y - cp.y;
 
-        var nw = aw / this._zoom * scale;
-        var nh = ah / this._zoom * scale;
+        // layer scale x
+        var oz = layer.scale.x;
 
-        var dx = nw - aw;
-        var dy = nh - ah;
+        var nz = 1 + (scale * layer.factor);
 
-        var np = new V(cp.x - dx, cp.y - dy);
+        var nw = (aw / oz) * nz;
+        var nh = (ah / oz) * nz;
 
+        var dx = aw - nw;
+        var dy = ah - nh;
 
-        this._zoom = scale;
-        this.content.scale.set(this._zoom);
-        this.repatable.tileScale.set(this._zoom);
+        layer.scale.set(nz);
 
-        this.moveScreenTo(np);
+        var np = new V(cp.x + dx, cp.y + dy);
+        layer.position.set(np.x, np.y);
 
-        this.updateAllSensors(this.content.children);
+        this.updateAllSensors(layer.children);
 
     };
-    
+
     MainScreen.prototype.updateAllSensors = function (children) {
-        
-         for (var i = children.length - 1; i >= 0; i--) {
+
+        for (var i = children.length - 1; i >= 0; i--) {
             var object = children[i];
             object.updateSensor();
             object.updateFrame();
             this.updateAllSensors(object.children);
         }
-        
+
     };
 
     MainScreen.prototype.addLayer = function (name, factor, index) {
@@ -799,6 +950,20 @@
         }
         return null;
     };
+
+    MainScreen.prototype.onSelectionChange = function () {
+       // build the align buttons
+       
+       
+       
+       if(this.selectedObjects.length > 1){
+         this.htmlInterface.showAlignButtons(this.selectedObjects);   
+       } else {
+           this.htmlInterface.hideAlignButtons();
+       }
+       
+    };
+    
 
     MainScreen.prototype.blank = function () {
         // used to call it , and do nothing
