@@ -72,15 +72,11 @@
 
             if (data.node.type === "Layer") {
 
-                var parent = inst.get_node('#');
+                var layer = editor.findById(data.node.data.id);
 
-                for (var i = 0; i < parent.children.length; i++) {
-                    var cid = parent.children[i];
-                    var layerData = inst.get_node(cid);
+                var newIndex = layer.parent.children.length - data.position - 1;
+                layer.parent.setChildIndex(layer, newIndex);
 
-                    var layer = editor.findById(layerData.data.id);
-                    layer.zIndex = parent.children.length - i;
-                }
             } else {
 
                 // move objects inside of them
@@ -91,16 +87,8 @@
                 var target = editor.findById(parentNode.data.id);
 
                 if (parentNode.data.id === object.parent.id) {
-                    // it only needs to reorganize the
-
-                    for (var i = 0; i < parentNode.children.length; i++) {
-                        var cid = parentNode.children[i];
-                        var layerData = inst.get_node(cid);
-
-                        var object = editor.findById(layerData.data.id);
-                        object.zIndex = parentNode.children.length - i;
-                    }
-
+                    var newIndex = object.parent.children.length - data.position - 1;
+                    object.parent.setChildIndex(object, newIndex);
                 } else {
                     // add it to a new parent
                     var objectAP = object.getGlobalPosition();
@@ -110,13 +98,6 @@
 
                     var p = V.substruction(objectAP, targetAP);
                     object.position.set(p.x, p.y);
-
-                    //TODO calulate its relative position for the new parent
-
-
-                    //object.position.set(0,0);
-
-                    //TODO let the node be visible
 
                 }
 
@@ -142,11 +123,63 @@
             for (var i = 0; i < selectedNodes.length; i++) {
                 var sn = selectedNodes[i];
                 var object = editor.findById(sn.data.id);
-                log(object)
+                if(!object){
+                    return;
+                    //
+                }
                 editor.addObjectToSelection(object);
             }
 
+            if (selectedNodes.length === 1) {
+                var sn = selectedNodes[0];
+                var object = editor.findById(sn.data.id);
+
+                if (object.type !== "Layer") {
+                    var p = object.getGlobalPosition();
+                    if (!SAT.pointInPolygon(p, editor.getSensor())) {
+
+                        var z = (1 - editor._zoom);
+
+                        var dp = V.substruction(editor._screenPosition, p);
+                        dp.x += app.width / 2;
+                        dp.y += app.height / 2;
+
+                        // dp.scale((1 - editor._zoom));
+
+                        var sp = new V().copy(editor._screenPosition); //.scale(1/(1 - editor._zoom));
+
+                        var distanceX = dp.x - sp.x;
+                        var distanceY = dp.y - sp.y;
+
+                        distanceX *= z;
+                        distanceY *= z;
+
+                        if (!Actions.isRunning('_screen_move')) {
+                            new Stepper(function (step) {
+
+                                var np = new V().copy(sp);
+                                np.x += distanceX * step;
+                                np.y += distanceY * step;
+
+                                editor.moveScreenTo(np);
+
+                            }, 800, null, new Bezier(.49, 0, .52, 1)).run('_screen_move');
+                        }
+
+                    }
+                }
+
+            }
+
         });
+
+        var size = app.device.windowSize();
+
+        var lt = document.getElementById('layersTree');
+        lt.style.height = (size.height - 130) + 'px';
+        lt.style.overflowY = 'auto';
+
+        // this.htmlInterface.layersContent.style.height = "500px";
 
     };
 
@@ -160,10 +193,10 @@
                 var menu = {
 
                 };
+                
+                var item = editor.findById(node.data.id);
 
                 if (node.type === 'Layer') {
-
-                    var item = editor.findById(node.data.id);
 
                     menu.edit = {
                         label: "Edit",
@@ -210,8 +243,13 @@
                         }
                         ref.delete_node(sel);
 
+                        var object = editor.findById(data.item.data.id);
+                        var command = new CommandDelete(object, editor);
+                        editor.commands.add(command);
+
                     },
-                    icon: 'fa fa-trash'
+                    icon: 'fa fa-trash',
+                    data: {id: item.id}
                 };
 
                 return menu;

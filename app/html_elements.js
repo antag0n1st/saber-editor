@@ -9,7 +9,18 @@
     HtmlElements.INPUT_TYPE_NUMBER = 1;
     HtmlElements.INPUT_TYPE_BOOLEAN = 2;
 
-    // name, value, className, event, isDisabled, tooltip, method, inputType
+    // name,displayName , value, class, event, isDisabled, tooltip, method, inputType
+    var sample = {
+        name: '',
+        displayName: '',
+        value: '',
+        class: '',
+        event: '',
+        isDisabled: false,
+        tooltip: '',
+        method: '',
+        inputType: HtmlElements.INPUT_TYPE_ALL
+    };
     HtmlElements.createInput = function (options) {
 
         var value = (typeof options.value === "undefined") ? '' : options.value;
@@ -37,9 +48,7 @@
 
         var html = '<div class="' + className + '">';
         html += '<label ';
-        if (tooltip) {
-            html += 'title="' + tooltip + '"';
-        }
+        html += tooltip ? 'title="' + tooltip + '"' : '';
         html += '>';
         html += displayName + ': </label>';
         html += ' <input ' + (options.isDisabled ? "disabled" : "");
@@ -55,7 +64,7 @@
 
     };
 
-    HtmlElements.createImageButton = function (imageName, method, className, tooltip) {
+    HtmlElements.createImageButton = function (imageName, method, argsString, className, tooltip) {
 
         var id = "htmlElementId-" + PIXI.utils.uid();
 
@@ -64,8 +73,47 @@
         html += ' id="' + id + '" ';
         html += ' title="' + tooltip + '" ';
         html += ' src="assets/images/icons/' + imageName + '.png" ';
-        html += ' onclick="app.navigator.currentScreen.' + method + '(\'\')" ';
+        html += ' onclick="app.navigator.currentScreen.' + method + '(' + argsString + ')" ';
         html += '/>';
+
+        return {html: html, id: id};
+
+    };
+
+    var buttonOpt = {
+        name: '',
+        displayName: '',
+        class: '',
+        icon: '',
+        tooltip: '',
+        method: '',
+        style: ''
+    };
+
+    HtmlElements.createButton = function (options) {
+
+        var id = "htmlElementId-" + PIXI.utils.uid();
+        var className = options.class || 'btn-info';
+        var style = options.style || "margin-left:5px;";
+        var method = options.method || "blank";
+        var tooltip = options.tooltip || "";
+        var icon = options.icon || "";
+        var name = options.name || '';
+        var displayName = options.displayName || name;
+        if (displayName === name) {
+            displayName = displayName.replace('_', ' ').capitalize();
+        }
+
+        var html = '<div class="btn ' + className + '"';
+        html += tooltip ? ' title="' + tooltip + '"' : '';
+        html += ' id="' + id + '" ';
+        html += ' style="' + style + '" ';
+        html += ' onclick="app.navigator.currentScreen.' + method + '(\'' + name + '\',this);" ';
+        html += '>';
+
+        html += '<i class="' + icon + '"></i> ';
+        html += displayName;
+        html += '</div>';
 
         return {html: html, id: id};
 

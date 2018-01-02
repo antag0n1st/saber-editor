@@ -17,16 +17,31 @@
 
         var that = this;
         this.kibo.up('ctrl z', function () {
-            that.editor.commands.undo();
-            that.editor.deselectAllObjects();
+
+            if (editor.isInputActive()) {
+                return false;
+            }
+
+            editor.commands.undo();
+            editor.deselectAllObjects();
         });
 
         this.kibo.up('ctrl y', function () {
-            that.editor.commands.redo();
-            that.editor.deselectAllObjects();
+
+            if (editor.isInputActive()) {
+                return false;
+            }
+
+            editor.commands.redo();
+            editor.deselectAllObjects();
         });
 
         this.kibo.up('delete', function () {
+
+            if (editor.isInputActive()) {
+                return false;
+            }
+
             that.onDelete();
         });
 
@@ -47,27 +62,52 @@
         });
 
         this.kibo.down('left', function () {
-            that.moveSelectionBy(new V(-1, 0));
+            if (!editor.isInputActive()) {
+                that.moveSelectionBy(new V(-1, 0));
+            }
+
         });
-        
+
         this.kibo.down('right', function () {
-            that.moveSelectionBy(new V(1, 0));
+            if (!editor.isInputActive()) {
+                that.moveSelectionBy(new V(1, 0));
+            }
+
         });
-        
+
         this.kibo.down('up', function () {
-            that.moveSelectionBy(new V(0,-1));
+            if (!editor.isInputActive()) {
+                that.moveSelectionBy(new V(0, -1));
+            }
+            
         });
-        
+
         this.kibo.down('down', function () {
-            that.moveSelectionBy(new V(0,1));
+            if (!editor.isInputActive()) {
+                that.moveSelectionBy(new V(0, 1));
+            }
+            
         });
-        
+
         this.kibo.down('ctrl c', function () {
-            that.editor.copySelection();
+            if (!editor.isInputActive()) {
+                editor.copySelection();
+            }
+
         });
-        
+
         this.kibo.down('ctrl v', function () {
-            that.editor.paste();
+            if (!editor.isInputActive()) {
+                editor.paste();
+            }
+        });
+
+        this.kibo.down('ctrl up', function () {
+            editor.htmlInterface.htmlTopTools.moveItemsUp();
+        });
+
+        this.kibo.down('ctrl down', function () {
+            editor.htmlInterface.htmlTopTools.moveItemsDown();
         });
 
     };
@@ -79,7 +119,7 @@
 
             for (var i = 0; i < this.editor.selectedObjects.length; i++) {
                 var object = this.editor.selectedObjects[i];
-              
+
                 var x = object.position.x + dragBy.x;
                 var y = object.position.y + dragBy.y;
 
@@ -105,7 +145,10 @@
         }
 
         this.editor.commands.add(batch);
+
         this.editor.deselectAllObjects();
+
+        this.editor.htmlInterface.tree.build();
 
     };
 

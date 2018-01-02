@@ -252,3 +252,19 @@ body{
 .image-button:hover{
     background-color: #cccccc;
 }
+
+.inline-small{
+    font-size: inherit;
+    width: 160px;
+    margin-top: 0px;
+    display: inline;
+    margin-left: 10px;
+}
+
+.inline-small input{
+    font-size: inherit;
+    width: 60px;
+    display: inline;
+    height: 30px;
+    margin: 0px;
+}

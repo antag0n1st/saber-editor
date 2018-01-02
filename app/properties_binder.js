@@ -33,6 +33,7 @@
 
             //var data = HtmlElements.createInput('x');
 
+            var opt0 = {name: 'id', value: object.id, class: 'big',displayName: 'ID'};
             var opt1 = {name: 'x', value: Math.roundDecimal(object.position.x, 2), class: 'small'};
             var opt2 = {name: 'y', value: Math.roundDecimal(object.position.y, 2), class: 'small'};
             var opt3 = {name: 'scaleX', value: Math.roundDecimal(object.scale.x, 2), class: 'small' , displayName: 'Scale X'};
@@ -44,6 +45,7 @@
             var opt9 = {name: 'rotation', value: Math.roundDecimal(Math.radiansToDegrees(object.rotation), 2), class: 'small'};
             var opt10 = {name: 'z-index', value: Math.round(object.zIndex), class: 'small', displayName :'Z-Index'};
 
+            html += HtmlElements.createInput(opt0).html;
             html += HtmlElements.createInput(opt1).html;
             html += HtmlElements.createInput(opt2).html;
             html += HtmlElements.createInput(opt3).html;
@@ -76,7 +78,9 @@
 
     PropertiesBinder.prototype.bindObjectWithProperty = function (object, property, value, element, some) {
         //TODO do it with commands
-        if (property === 'x') {
+        if (property === 'id') {
+            object.id = value;
+        } else if (property === 'x') {
             object.position.x = Number(value) || 0;
         } else if (property === 'y') {
             object.position.y = Number(value) || 0;

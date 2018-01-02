@@ -82,55 +82,6 @@
 
     };
 
-    MainScreen.prototype.onTextColorChange = function (colorHex) {
-        this.clickedObject.label.style.fill = colorHex;
-    };
-
-    MainScreen.prototype.onTextAlignChange = function (e) {
-        this.clickedObject.label.style.align = this.htmlInterface.textAlign.value;
-        this.clickedObject.updateSize();
-        this.clickedObject.updateFrame();
-    };
-
-    MainScreen.prototype.onFontSizeWheel = function (e) {
-        var fontSize = (this.htmlInterface.textFontSize.value + '').replace('px', '');
-        fontSize = Math.round(fontSize);
-        if (e.wheelDelta > 0) {
-            fontSize += 1;
-        } else {
-            fontSize -= 1;
-        }
-
-        fontSize = (fontSize < 10) ? 10 : fontSize;
-        fontSize = (fontSize > 600) ? 600 : fontSize;
-
-        this.clickedObject.label.style.fontSize = fontSize + 'px';
-        this.clickedObject.updateSize();
-        this.clickedObject.updateFrame();
-
-        this.htmlInterface.textFontSize.value = fontSize;
-    };
-
-    MainScreen.prototype.onFontSizeKey = function (e) {
-
-        var fontSize = (this.htmlInterface.textFontSize.value + '').replace('px', '');
-        fontSize = Math.round(fontSize);
-        fontSize = (fontSize < 10) ? 10 : fontSize;
-        fontSize = (fontSize > 600) ? 600 : fontSize;
-
-        this.clickedObject.label.style.fontSize = fontSize + 'px';
-        this.clickedObject.updateSize();
-        this.clickedObject.updateFrame();
-    };
-
-    MainScreen.prototype.onTextareaKey = function (e) {
-
-        this.clickedObject.label.txt = this.htmlInterface.textUpdateArea.value;
-        this.clickedObject.updateSize();
-        this.clickedObject.updateFrame();
-
-    };
-
     MainScreen.prototype.onLibraryImageDropped = function (id) {
 
         var object = new ImageObject(id);
@@ -242,14 +193,26 @@
         for (var i = children.length - 1; i >= 0; i--) {
             var object = children[i];
 
+            if (!object.export) {
+                continue;
+            }
+
+
+
             if (this.checkSelection(x, y, width, height, object.children)) {
                 // return true;
             }
 
             var rectangle = object.getSensor();
             if (SAT.testPolygonPolygon(this.selectionRectangle, rectangle)) {
+
+                if (this.selectedObjects.length && this.selectedObjects[0].parent.id !== object.parent.id) {
+                    continue;
+                }
+
                 if (!object.isSelected) {
                     object.save();
+
                     this.addObjectToSelection(object);
                 }
             } else if (object.isSelected) {
@@ -266,6 +229,10 @@
 
             var object = children[i];
 
+            if (!object.export) {
+                continue;
+            }
+
             var obj = this.checkPointInObject(object.children, event);
             if (obj) {
                 return obj;
@@ -275,21 +242,6 @@
 
             var sensor = object.getSensor();
             if (SAT.pointInPolygon(event.point, sensor)) {
-
-//               // this.isClickedInsideObject = true;
-//               // this.clickedObject = object;
-//
-//                if (object.isSelected) {
-//                    // we gonna drag
-////                    for (var j = 0; j < this.selectedObjects.length; j++) {
-////                        this.selectedObjects[j].save();
-////                    }
-//                } else {
-//                    // select it right away
-//                   // this.deselectAllObjects();
-//                   // this.addObjectToSelection(object);
-//                   // object.save();
-//                }
 
                 return object;
             }
@@ -303,6 +255,10 @@
 
         for (var i = children.length - 1; i >= 0; i--) {
             var object = children[i];
+
+            if (!object.export) {
+                continue;
+            }
 
             if (this.checkSelectedObjects(object.children, event)) {
                 return true;
@@ -369,7 +325,14 @@
                 if (object.isSelected) {
                     this.deselectObject(object);
                 } else {
-                    this.addObjectToSelection(object);
+
+                    if (this.selectedObjects.length && this.selectedObjects[0].parent.id !== object.parent.id) {
+
+                    } else {
+                        this.addObjectToSelection(object);
+                    }
+
+
                 }
             } else {
                 var isOneOfUs = false;
@@ -501,8 +464,8 @@
     };
 
     MainScreen.prototype.onMouseUp = function (event, sender) {
-        
-      
+
+
         // app.input.restoreCursor();
 
         if (this.shortcuts.isSpacePressed && !this.selectionRectangle) {
@@ -513,31 +476,31 @@
 
         if (dt < 300 && this.isClickedInsideObject) {
             if (this.clickedObject instanceof LabelObject) {
-                this.htmlInterface.showTextEdit(this.clickedObject);
+                this.htmlInterface.htmlTopTools.showTextEdit(this.clickedObject);
             } else if (this.clickedObject instanceof ImageObject) {
                 this.htmlInterface.activateTab('properties');
             }
         } else {
-            this.htmlInterface.hideTextEdit();
+            this.htmlInterface.htmlTopTools.hideTextEdit();
         }
 
         if (this.isClickedInsideObject) {
-            
-           
+
+
             // it can be selection if dragging did not take place
             if (!this.didDrag) {
 
                 if (this.shortcuts.isCtrlPressed) {
 
-                } else if(!this.selectionRectangle) {
+                } else if (!this.selectionRectangle) {
                     this.deselectAllObjects();
                     this.addObjectToSelection(this.clickedObject);
                 }
 
 
             } else {
-                
-              
+
+
 
                 var batch = new CommandBatch();
                 for (var i = 0; i < this.selectedObjects.length; i++) {
@@ -637,31 +600,11 @@
 
         this.htmlInterface.contextMenu.close();
 
-        // first select the object
-        var hasHit = false;
-        for (var i = 0; i < this.objects.length; i++) {
-            var object = this.objects[i];
-            var sensor = object.getSensor();
-            if (SAT.pointInPolygon(event.point, sensor)) {
-                hasHit = true;
-                if (object.isSelected) {
-                    break;
-                } else {
-                    this.deselectAllObjects();
-                    this.addObjectToSelection(object);
-                    break;
-                }
-            }
-        }
-
-        if (hasHit) {
+        if (this.selectedObjects.length) {
             this.htmlInterface.contextMenu.open(event.point);
         } else {
-            this.deselectAllObjects();
+
         }
-
-
-
 
     };
 
@@ -675,9 +618,9 @@
 
         var toScale = this._zoom + scale;
 
-        this.htmlInterface.zoomSlider.setValue(toScale);
+        this.htmlInterface.htmlTopTools.zoomSlider.setValue(toScale);
 
-        this.zoomInAt(toScale, p, 200);
+        this.htmlInterface.htmlTopTools.zoomInAt(toScale, p, 200);
     };
 
     MainScreen.prototype.onMouseCancel = function (event, sender) {
@@ -800,71 +743,24 @@
         layer.position.y += np.y;
     };
 
-    MainScreen.prototype.zoomInAt = function (scale, zoomPoint, duration) {
-
-        if (!this._zoomPoint) {
-            this._zoomPoint = new V().copy(zoomPoint);
-        }
-
-        Actions.stopByTag('zoom');
-        var zoom = this._zoom;
-        scale = scale - zoom;
-        new Stepper(function (step) {
-            for (var i = 0; i < this.content.children.length; i++) {
-                var layer = this.content.children[i];
-                this.setZoom(zoom + scale * step, this._zoomPoint, layer);
-            }
-
-        }, duration, null, new Bezier(.46, .79, .79, .99), function () {
-
-            if (this._zoom === 0) {
-                this._zoomPoint = null;
-            }
-
-        }, this).run('zoom');
-    };
-
-    MainScreen.prototype.setZoom = function (scale, point, layer) {
-
-        this._zoom = scale; // set global zoom
-
-        var cp = new V().copy(layer.getGlobalPosition());
-
-        var aw = point.x - cp.x;
-        var ah = point.y - cp.y;
-
-        // layer scale x
-        var oz = layer.scale.x;
-
-        var nz = 1 + (scale * layer.factor);
-
-        var nw = (aw / oz) * nz;
-        var nh = (ah / oz) * nz;
-
-        var dx = aw - nw;
-        var dy = ah - nh;
-
-        layer.scale.set(nz);
-
-        var np = new V(cp.x + dx, cp.y + dy);
-        layer.position.set(np.x, np.y);
-
-        this.updateAllSensors(layer.children);
-
-    };
-
     MainScreen.prototype.updateAllSensors = function (children) {
 
         for (var i = children.length - 1; i >= 0; i--) {
             var object = children[i];
-            object.updateSensor();
-            object.updateFrame();
-            this.updateAllSensors(object.children);
+            if (object.export) {
+                object.updateSensor();
+                object.updateFrame();
+                this.updateAllSensors(object.children);
+            }
         }
 
     };
 
     MainScreen.prototype.addLayer = function (name, factor, index) {
+
+        var oldP = new V().copy(this._screenPosition);
+
+        this.moveScreenTo(new V());
 
         var layer = new Layer();
         layer.name = name;
@@ -876,6 +772,8 @@
         this.commands.add(command);
 
         this.htmlInterface.tree.build();
+
+        this.moveScreenTo(oldP);
 
         //TODO onLayerAdded
         //TODO use other method , do not use placeObjectOnScreen\
@@ -899,8 +797,7 @@
         }
 
         if (!this.activeLayer) {
-            this.activeLayer = this.content.children[0];
-            ;
+            this.activeLayer = this.content.children[this.content.children.length - 1];
             this.activeLayer.isActive = true;
         }
 
@@ -952,24 +849,33 @@
     };
 
     MainScreen.prototype.onSelectionChange = function () {
-       // build the align buttons
-       
-       
-       
-       if(this.selectedObjects.length > 1){
-         this.htmlInterface.showAlignButtons(this.selectedObjects);   
-       } else {
-           this.htmlInterface.hideAlignButtons();
-       }
-       
+        // build the align buttons
+
+        if (this.selectedObjects.length > 1) {
+            this.htmlInterface.htmlTopTools.showAlignButtons(this.selectedObjects);
+        } else {
+            this.htmlInterface.htmlTopTools.hideAlignButtons();
+        }
+
+        if (this.selectedObjects.length > 0) {
+            this.htmlInterface.htmlTopTools.showZIndexButtons();
+        } else {
+            this.htmlInterface.htmlTopTools.hideZIndexButtons();
+        }
+
     };
     
+     MainScreen.prototype.isInputActive = function () {
+        var obj = document.activeElement;
+        var isInputFocused = (obj instanceof HTMLInputElement) && obj.type == 'text';
+        var isAreaFocused = (obj instanceof HTMLTextAreaElement);
+
+        return isInputFocused || isAreaFocused;
+    };
 
     MainScreen.prototype.blank = function () {
         // used to call it , and do nothing
     };
-
-
 
     window.MainScreen = MainScreen; // make it available in the main scope
 

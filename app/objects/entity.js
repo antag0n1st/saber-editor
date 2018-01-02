@@ -10,7 +10,7 @@
 
         this.spriteInitialize(name);
         
-        this.id = PIXI.utils.uid();
+        this.id = '_change_it_before_use-'+PIXI.utils.uid();
 
         this.isSelected = false;
         this.frameSensors = [];
@@ -233,6 +233,7 @@
         o.zIndex = this.zIndex;
         o.children = [];
         o.type = this.type;
+        o.id = this.id;
         
         for (var i = 0; i < this.children.length; i++) {
             var c = this.children[i];
@@ -254,6 +255,11 @@
         this.rotation = data.rotation;
         this.alpha = data.alpha;
         this.type = data.type;
+        
+        if(!data.id.startsWith('_change_it_before_use-')){
+            this.id = data.id;
+        }
+        
         //TODO maybe dadd children here
     };
 
