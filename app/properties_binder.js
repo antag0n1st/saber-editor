@@ -27,7 +27,7 @@
 
     PropertiesBinder.prototype.bindObject = function (object) {
 
-        if (object instanceof ImageObject) {
+      //  if (object instanceof ImageObject ) {
 
             var html = '';
 
@@ -87,7 +87,7 @@
             }
             HtmlElements.setFeedback(idControl.feedbackID, isValid);
 
-        }
+     //   }
 
 
     };
@@ -161,7 +161,13 @@
             this.editor.constraints.rebuildDependencyTree();
             this.editor.constraints.applyValues();
         }
-
+        
+       //   clickedObject.updateSize();
+       // clickedObject.updateFrame();
+       
+       if(object.updateSize){
+           object.updateSize();
+       }
         object.updateSensor();
         object.updateFrame();
 

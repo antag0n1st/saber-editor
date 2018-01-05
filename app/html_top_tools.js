@@ -167,6 +167,8 @@
     HtmlTopTools.prototype.hideTextEdit = function () {
         this.textUpdatePanel.style.display = 'none';
     };
+    
+    /////////////////////////////////////////////////////////////////////////////
 
 
     // This method is inivoked when the zoom slider is moved
@@ -290,14 +292,19 @@
             var padding = Math.round(value) || 0;
             var x = objects[0].getBounds().left;
 
+            var batch = new CommandBatch();
+
             for (var i = 0; i < objects.length; i++) {
                 var object = objects[i];
                 var bounds = object.getBounds();
                 var width = bounds.right - bounds.left;
                 var dx = x - bounds.left + total;
                 total += width + padding;
-                object.position.x += dx;
+                // object.position.x += dx;
+                var command = new CommandMove(object, object.position.x + dx, object.position.y);
+                batch.add(command);
             }
+            this.editor.commands.add(batch);
 
         } else if (name === "spacingY") {
 
@@ -309,14 +316,18 @@
             var padding = Math.round(value) || 0;
             var y = objects[0].getBounds().top;
 
+            var batch = new CommandBatch();
+
             for (var i = 0; i < objects.length; i++) {
                 var object = objects[i];
                 var bounds = object.getBounds();
                 var height = bounds.bottom - bounds.top;
                 var dy = y - bounds.top + total;
                 total += height + padding;
-                object.position.y += dy;
+                var command = new CommandMove(object, object.position.x, object.position.y + dy);
+                batch.add(command);
             }
+            this.editor.commands.add(batch);
 
         }
 

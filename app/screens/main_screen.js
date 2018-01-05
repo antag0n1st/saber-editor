@@ -50,6 +50,7 @@
         this._zoom = 0;
         this._zoomPoint = null;
         this._screenPosition = new V();
+        this.targetDropObject = null; // the object in which we are going to drop the children.
         this.clipboard = null;
 
         this.activeLayer = null;
@@ -144,7 +145,7 @@
 
     MainScreen.prototype.addObjectToSelection = function (object) {
         if (this.selectedObjects.indexOf(object) === -1) {
-            this.selectedObjects.push(object); //TODO check in case it is already there
+            this.selectedObjects.push(object);
             object.select();
             this.onSelectionChange();
         }
@@ -168,6 +169,10 @@
             }
 
             this.selectedObjects = [];
+
+            if (this.targetDropObject) {
+                this.targetDropObject = null;
+            }
 
             this.onSelectionChange();
         }
@@ -227,7 +232,7 @@
     };
 
     // check if the point is inside some object
-    MainScreen.prototype.checkPointInObject = function (children, event) {
+    MainScreen.prototype.checkPointInChildren = function (children, event) {
 
         for (var i = children.length - 1; i >= 0; i--) {
 
@@ -237,7 +242,7 @@
                 continue;
             }
 
-            var obj = this.checkPointInObject(object.children, event);
+            var obj = this.checkPointInChildren(object.children, event);
             if (obj) {
                 return obj;
             }
@@ -301,8 +306,9 @@
     MainScreen.prototype.onMouseDown = function (event, sender) {
 
         if (this.shortcuts.isSpacePressed) {
-            this.screenMouseOffset = V.substruction(this._screenPosition, event.point);
-
+            var pp = event.point.clone();
+            pp.scale(1 / this.activeLayer.factor);
+            this.screenMouseOffset = V.substruction(this._screenPosition, pp);
             return;
         }
 
@@ -321,7 +327,7 @@
             return;
         }
 
-        var object = this.checkPointInObject(this.activeLayer.children, event);
+        var object = this.checkPointInChildren(this.activeLayer.children, event);
 
         if (object) {
 
@@ -382,12 +388,40 @@
     MainScreen.prototype.onMouseMove = function (event, sender) {
 
         if (this.shortcuts.isSpacePressed && !this.selectionRectangle) {
-            var p = V.addition(this.screenMouseOffset, event.point);
+            var offset = new V().copy(this.screenMouseOffset);
+            var pp = event.point.clone();
+            pp.scale(1 / this.activeLayer.factor);
+            var p = V.addition(offset, pp);
             this.moveScreenTo(p);
             return;
         }
 
         if (this.shortcuts.isCtrlPressed) {
+
+            var object = this.checkPointInChildren(this.activeLayer.children, event);
+            if (object) {
+
+                var isSelected = false;
+                for (var i = 0; i < this.selectedObjects.length; i++) {
+                    if (object.id === this.selectedObjects[i].id) {
+                        isSelected = true;
+                    }
+                }
+
+                if (!isSelected) {
+                    this.targetDropObject = object;
+                    app.input.setCursor('cell');
+                } else if (this.targetDropObject) {
+                    this.targetDropObject = null;
+                }
+
+
+            } else {
+                if (this.targetDropObject) {
+                    this.targetDropObject = null;
+                }
+                app.input.restoreCursor();
+            }
             return;
         }
 
@@ -470,7 +504,33 @@
     MainScreen.prototype.onMouseUp = function (event, sender) {
 
 
-        // app.input.restoreCursor();
+        app.input.restoreCursor();
+
+        if (this.shortcuts.isCtrlPressed) {
+            if (this.targetDropObject) {
+               
+                var targetAP = this.targetDropObject.getGlobalPosition();
+
+                for (var i = 0; i < this.selectedObjects.length; i++) {
+                    var object = this.selectedObjects[i];
+
+                    var objectAP = object.getGlobalPosition();
+
+                    object.removeFromParent();
+                    this.targetDropObject.addChild(object);
+
+                    var p = V.substruction(objectAP, targetAP);
+                    object.position.set(p.x, p.y);
+                }
+
+                this.deselectAllObjects();
+
+            }
+
+
+            this.targetDropObject = null;
+        }
+
 
         if (this.shortcuts.isSpacePressed && !this.selectionRectangle) {
             return;
@@ -480,7 +540,8 @@
 
         if (dt < 300 && this.isClickedInsideObject) {
             if (this.clickedObject instanceof LabelObject) {
-                this.htmlInterface.htmlTopTools.showTextEdit(this.clickedObject);
+                this.htmlInterface.activateTab('properties');
+               // this.htmlInterface.htmlTopTools.showTextEdit(this.clickedObject);
             } else if (this.clickedObject instanceof ImageObject) {
                 this.htmlInterface.activateTab('properties');
             }
@@ -499,6 +560,7 @@
                 } else if (!this.selectionRectangle) {
                     this.deselectAllObjects();
                     this.addObjectToSelection(this.clickedObject);
+
                 }
 
 
@@ -536,7 +598,7 @@
 
             } else if (!this.isSelectionStarted) {
 
-                //this.checkPointInObject(this.activeLayer.children, event);
+                //this.checkPointInChildren(this.activeLayer.children, event);
 
                 // this.deselectAllObjects();
             }
@@ -600,9 +662,37 @@
 
     };
 
-    MainScreen.prototype.onRightMouseUp = function (event, sender) {
+    MainScreen.prototype.onRightMouseDown = function (event, sender) {
 
         this.htmlInterface.contextMenu.close();
+
+        if (this.shortcuts.isSpacePressed) {
+            var pp = event.point.clone();
+            pp.scale(1 / this.activeLayer.factor * 5);
+            this.screenMouseOffset = V.substruction(this._screenPosition, pp);
+
+            return;
+        }
+
+    };
+
+
+    MainScreen.prototype.onRightMouseMove = function (event, sender) {
+        if (this.shortcuts.isSpacePressed && !this.selectionRectangle) {
+            var offset = new V().copy(this.screenMouseOffset);
+            var pp = event.point.clone();
+            pp.scale(1 / this.activeLayer.factor * 5);
+            var p = V.addition(offset, pp);
+            this.moveScreenTo(p);
+            return;
+        }
+    };
+
+    MainScreen.prototype.onRightMouseUp = function (event, sender) {
+
+        if (this.shortcuts.isSpacePressed && !this.selectionRectangle) {
+            return;
+        }
 
         if (this.selectedObjects.length) {
             this.htmlInterface.contextMenu.open(event.point);
@@ -684,11 +774,10 @@
             object.drawFrame(this.graphics);
         }
 
-        if (this.shortcuts.isSpacePressed) {
-            app.input.setCursor('pointer');
-        } else {
-            app.input.restoreCursor();
+        if (this.targetDropObject) {
+            this.targetDropObject.drawFrame(this.graphics);
         }
+
 
     };
 
@@ -796,9 +885,6 @@
 
         this.moveScreenTo(oldP);
 
-        //TODO onLayerAdded
-        //TODO use other method , do not use placeObjectOnScreen\
-        // a new command will be needed , command add layer
 
     };
 

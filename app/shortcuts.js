@@ -47,10 +47,12 @@
 
         this.kibo.down('space', function () {
             that.isSpacePressed = true;
+            app.input.setCursor('pointer');
         });
 
         this.kibo.up('space', function () {
             that.isSpacePressed = false;
+            app.input.restoreCursor();
         });
 
         this.kibo.down('ctrl', function () {
@@ -109,6 +111,10 @@
         this.kibo.down('ctrl down', function () {
             editor.htmlInterface.htmlTopTools.moveItemsDown();
         });
+        
+        this.kibo.down('esc', function () {
+            that.onEsc();
+        });
 
     };
 
@@ -150,6 +156,10 @@
 
         this.editor.htmlInterface.tree.build();
 
+    };
+    
+    Shortcuts.prototype.onEsc = function () {
+        this.editor.deselectAllObjects();
     };
 
     window.Shortcuts = Shortcuts;
