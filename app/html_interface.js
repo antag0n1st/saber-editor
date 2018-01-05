@@ -183,12 +183,17 @@
     HtmlInterface.prototype.onAddLayerBtn = function () {
         var name = document.getElementById('layerName').value;
         var factor = document.getElementById('layerFactor').value;
+        var id = document.getElementById('layerID').value;
 
         if (name && factor) {
 
-            this.editor.addLayer(name, factor, 0);
+            this.editor.addLayer(name, factor, id);
 
             $("#addLayerModal").modal('hide');
+
+            document.getElementById('layerName').value = '';
+            document.getElementById('layerFactor').value = '';
+            document.getElementById('layerID').value = '';
         }
 
     };

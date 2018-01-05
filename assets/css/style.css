@@ -138,15 +138,43 @@ body{
 }
 
 .libraryItem{
-    width:90px;
-    height:90px;
+    width:92px;
+    height:92px;
     margin: 10px 0px 0px 10px;
     border: 1px solid transparent;
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
 }
 
 .libraryItem:hover{
     border: 1px solid #bbed27;
     cursor: pointer;
+}
+
+.libraryItem img{
+    width:90px;
+    height:90px;
+    margin: 0px;
+    border: none;
+    padding: 0px;
+}
+
+.libraryItem div{
+    position: absolute;
+    line-height: initial;
+    font-size: 12px;
+    bottom: 0px;
+    left: 5px;
+    width: 80px;
+    height: 27px;
+    text-align: center;
+    display: flex;
+    vertical-align: middle;     
+    margin: auto;
+    padding: 0px;
+    border: none;
+
 }
 
 #imageLibraryContent{
@@ -179,7 +207,7 @@ body{
     display: none; 
     height: 133px; 
     width: 158px; 
-    
+
     left: 50%;
     top: 50%;
 }
@@ -227,7 +255,7 @@ body{
 
 .content div.big input{
     width: 240px;
-    
+
 }
 
 .content div.small{

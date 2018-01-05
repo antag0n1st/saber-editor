@@ -58,6 +58,8 @@
         <script src="app/properties_binder.js" type="text/javascript"></script>
         <script src="app/importer.js" type="text/javascript"></script>
         <script src="app/layers_tree.js" type="text/javascript"></script>
+        <script src="app/constraints.js" type="text/javascript"></script>
+        <script src="app/constraint.js" type="text/javascript"></script>
 
         <script src="app/objects/entity.js" type="text/javascript"></script>
         <script src="app/objects/image_object.js" type="text/javascript"></script>
@@ -257,7 +259,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title">Add New Layer</h4>
+                        <h4 class="modal-title">Layer</h4>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
@@ -271,6 +273,7 @@
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                         <button id="addLayerBtn" type="button" class="btn btn-primary" >Save</button>
                     </div>
+                    <input type="hidden" id="layerID" name="layerID" value="" />
                 </div>
             </div>
         </div>

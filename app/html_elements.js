@@ -19,6 +19,7 @@
         isDisabled: false,
         tooltip: '',
         method: '',
+        feedback: false,
         inputType: HtmlElements.INPUT_TYPE_ALL
     };
     HtmlElements.createInput = function (options) {
@@ -45,8 +46,10 @@
         var event_string = options.event ? options.event.name + '="' + options.event.callback + '"' : "";
 
         var id = "htmlElementId-" + PIXI.utils.uid();
+        var feedbackID = "feedbackElementId-" + PIXI.utils.uid();
 
-        var html = '<div class="' + className + '">';
+        var html = '<div class="' + className + ' ' + (options.feedback ? 'has-feedback' : '') + '">';
+        html += options.feedback ? '<i id="' + feedbackID + '" style="color:orange;" class="fa fa-warning form-control-feedback"></i>' : '';
         html += '<label ';
         html += tooltip ? 'title="' + tooltip + '"' : '';
         html += '>';
@@ -55,12 +58,32 @@
         html += ' class="form-control" ';
         html += ' id="' + id + '" ';
         html += ' type="text" value="' + value + '" ' + event_string;
-        html += ' onkeyup="app.navigator.currentScreen.' + method + '(\'' + name + '\',this.value,this,' + inputType + ');" ';
+        html += ' onkeyup="app.navigator.currentScreen.' + method + '(\'' + name + '\',this.value,this,' + inputType + ',\'' + feedbackID + '\');" ';
         html += ' />';
 
         html += '</div>';
 
-        return {html: html, id: id};
+        return {html: html, id: id, feedbackID: feedbackID};
+
+    };
+
+    HtmlElements.setFeedback = function (id, isValid) {
+
+        var feedback = document.getElementById(id);
+
+        feedback.className = feedback.className.replace('fa fa-warning', "");
+        feedback.className = feedback.className.replace('fa fa-check', "");
+
+        if (isValid) {
+            feedback.className += ' fa fa-check';
+            feedback.style.color = 'green';
+        } else {
+            feedback.className += ' fa fa-warning';
+            feedback.style.color = 'orange';
+        }
+
+        feedback.className = feedback.className.replace(/  +/g, " ");
+       
 
     };
 
@@ -113,6 +136,25 @@
 
         html += '<i class="' + icon + '"></i> ';
         html += displayName;
+        html += '</div>';
+
+        return {html: html, id: id};
+
+    };
+
+    HtmlElements.createSection = function (title) {
+
+        var id = "htmlElementId-" + PIXI.utils.uid();
+
+        var html = '';
+        html += '<div ';
+
+        html += ' style="border-top:1px solid #aaaaaa;text-align:left; margin-top:5px;" ';
+        html += ' id="' + id + '" ';
+        html += '>';
+        html += '<h3 style="font-size:20px;">';
+        html += ' ' + title + ' ';
+        html += '</h3>';
         html += '</div>';
 
         return {html: html, id: id};

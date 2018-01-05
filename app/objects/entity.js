@@ -29,6 +29,9 @@
         
         this.type = 'Entity';
         
+        this.constraintX = null;
+        this.constraintY = null;
+        
 
     };
 
@@ -235,6 +238,14 @@
         o.type = this.type;
         o.id = this.id;
         
+        if(this.constraintX){
+            o.constraintX = this.constraintX.value;
+        }
+        
+        if(this.constraintY){
+            o.constraintY = this.constraintY.value;
+        }
+        
         for (var i = 0; i < this.children.length; i++) {
             var c = this.children[i];
             if(c.export){
@@ -255,6 +266,14 @@
         this.rotation = data.rotation;
         this.alpha = data.alpha;
         this.type = data.type;
+        
+        if(data.constraintX){
+            this.constraintX = new Constraint(this,'x',data.constraintX);
+        }
+        
+        if(data.constraintY){
+            this.constraintY = new Constraint(this,'y',data.constraintY);
+        }
         
         if(!data.id.startsWith('_change_it_before_use-')){
             this.id = data.id;

@@ -13,14 +13,21 @@
     };
     
     Importer.prototype.clearStage = function(){
-       
-        for (var i = 0; i < this.editor.children.length; i++) {
-            var o = this.editor.children[i];
-            o.removeFromParent();
+        
+        var layers = this.editor.content.children;
+      
+        for (var i = layers.length - 1; i >= 0 ; i--) {
+            var layer = layers[i];
+            layer.removeFromParent();
         }
         
         this.editor.deselectAllObjects();        
         this.editor.selectedObjects = [];
+        this.editor.activeLayer = null;
+        
+        this.editor.setDefaultLayer();
+        
+        this.editor.moveScreenTo(new V());
         
     };
     

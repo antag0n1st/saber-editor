@@ -37,19 +37,9 @@ function listFolderFiles($dir, $folder_name) {
     global $main_dir, $content;
 
     $folder = [];
-    $folder['text'] = $folder_name;
+    $folder['name'] = $folder_name;
     $folder['children'] = [];
-
-    if ($folder_name == 'root') {
-        $folder['state'] = ["opened" => true];
-    }
-//        state       : {
-////            opened    : boolean  // is the node open
-////            disabled  : boolean  // is the node disabled
-////            selected  : boolean  // is the node selected
-////        }
-//    }
-
+    
     foreach ($ffs as $ff) {
 
         if ($ff != '.' && $ff != '..') {
@@ -68,7 +58,7 @@ function listFolderFiles($dir, $folder_name) {
                     //   $url = str_replace('', '', $url);
                     $url = ltrim($url, '/');
 
-                    $node = ['icon' => $url . $ff, 'text' => $basic];
+                    $node = ['url' => $url . $ff, 'name' => $basic];
 
                     $folder['children'][] = $node;
                 }
@@ -88,10 +78,20 @@ function listFolderFiles($dir, $folder_name) {
     return $folder;
 }
 
-header('Content-type: application/json');
+$debug = false;
 
-$structure = listFolderFiles($main_dir, 'root');
-print_r(json_encode($structure));
+if ($debug) {
+    $structure = listFolderFiles($main_dir, 'root');
+    echo '<pre>';
+    print_r($structure);
+} else {
+    header('Content-type: application/json');
+
+    $structure = listFolderFiles($main_dir, 'root');
+    print_r(json_encode($structure['children']));
+}
+
+
 
 
 //print_r(json_encode($content));

@@ -201,8 +201,17 @@
                     menu.edit = {
                         label: "Edit",
                         action: function (data) {
+                            //TODO
+                           // edit the layer
+                           
+                           
+                           $("#addLayerModal").modal('show');
 
-                        },
+                            document.getElementById('layerName').value = item.name;
+                            document.getElementById('layerFactor').value = item.factor;
+                            document.getElementById('layerID').value = item.id;
+                           
+                        }.bind(this),
                         icon: 'fa fa-pencil'
                     };
 

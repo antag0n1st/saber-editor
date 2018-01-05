@@ -44,18 +44,14 @@
 
         this.initialLoad(function () {
 
-            // log("here")
             this.loadAssets();
             
-           // log(ContentManager.baseURL)
-
-            ajaxGet('app/php/library.php', function (res) {
-                for (var i = 0; i < res.children.length; i++) {
-                    var resource = res.children[i];
-                    ContentManager.addImage(resource.text, ContentManager.baseURL+resource.icon);
-                    app.libraryImages.push({name:resource.text,data:ContentManager.baseURL+resource.icon});
-                }
-
+            ajaxGet('app/php/library.php', function (resources) {
+                
+                app.libraryImages = resources;
+                
+                app.addToLoader(resources);
+                
                 ContentManager.downloadResources(function () {
 
                     app.navigator.currentScreen.loadingBar.setPercent(1, true);
@@ -67,13 +63,25 @@
             });
 
 
-
-
-
         });
 
 
 
+    };
+    
+    App.prototype.addToLoader = function (resources) {
+        
+        for (var i = 0; i < resources.length; i++) {
+            var resource = resources[i];
+            
+            if(resource.children){
+                this.addToLoader(resource.children);
+            } else if(resource.url) {
+                ContentManager.addImage(resource.name, ContentManager.baseURL+resource.url);
+            }
+            
+        }
+        
     };
 
     App.prototype.initialLoad = function (callback) {

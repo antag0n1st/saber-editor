@@ -80,6 +80,10 @@
         this.importSavedData();
         this.setDefaultLayer();
 
+
+        this.constraints = new Constraints(this);
+
+
     };
 
     MainScreen.prototype.onLibraryImageDropped = function (id) {
@@ -693,6 +697,8 @@
         this.repatable.width = width;
         this.repatable.height = height;
 
+        this.constraints.applyValues();
+
     };
 
     MainScreen.prototype.snapTo = function (value, values, tolerance) {
@@ -756,22 +762,37 @@
 
     };
 
-    MainScreen.prototype.addLayer = function (name, factor, index) {
+    MainScreen.prototype.addLayer = function (name, factor, id) {
 
         var oldP = new V().copy(this._screenPosition);
 
         this.moveScreenTo(new V());
+        var layer = null;
 
-        var layer = new Layer();
+        if (id) {
+            for (var i = 0; i < this.content.children.length; i++) {
+                var l = this.content.children[i];
+                if (l.id === id) {
+                    layer = l;
+                    break;
+                }
+            }
+
+
+        } else {
+            layer = new Layer();
+
+        }
+
         layer.name = name;
         layer.factor = factor;
         layer.build();
-        //  this.layers.push(layer);
-        //this.placeObjectOnScreen(layer,new V());
-        var command = new CommandAdd(layer, this.content, this);
-        this.commands.add(command);
 
-        this.htmlInterface.tree.build();
+        if (!id) {
+            var command = new CommandAdd(layer, this.content, this);
+            this.commands.add(command);
+            this.htmlInterface.tree.build();
+        }
 
         this.moveScreenTo(oldP);
 
@@ -819,9 +840,10 @@
         }
     };
 
-    MainScreen.prototype.findById = function (id) {
-        for (var i = 0; i < this.content.children.length; i++) {
-            var c = this.content.children[i];
+    MainScreen.prototype.findById = function (id, parent) {
+        parent = parent || this.content;
+        for (var i = 0; i < parent.children.length; i++) {
+            var c = parent.children[i];
             if (c.id === id) {
                 return c;
             }
@@ -864,13 +886,40 @@
         }
 
     };
-    
-     MainScreen.prototype.isInputActive = function () {
+
+    MainScreen.prototype.isInputActive = function () {
         var obj = document.activeElement;
         var isInputFocused = (obj instanceof HTMLInputElement) && obj.type == 'text';
         var isAreaFocused = (obj instanceof HTMLTextAreaElement);
 
         return isInputFocused || isAreaFocused;
+    };
+
+    MainScreen.prototype.isIdUnique = function (id, children, count) {
+
+        children = children || this.content.children;
+        count = count || 0;
+
+        for (var i = 0; i < children.length; i++) {
+            var child = children[i];
+            if (child.id === id) {
+                count++;
+
+                if (count > 1) {
+                    return count;
+                }
+            }
+
+            var c = this.isIdUnique(id, child.children, count);
+
+            if (c > 1) {
+                return false;
+            }
+        }
+
+
+        return true;
+
     };
 
     MainScreen.prototype.blank = function () {
