@@ -36,17 +36,16 @@
 
         this.selectedObjects = []; //
         this.isSelectionStarted = false;
-        this.isHandleTouched = false;
         this.isClickedInsideObject = false;
         this.isClickedInsideSameObject = false;
         this.didDrag = false;
         this.dragPosition = new V();
+        this.handlesClickedObject = null;
         this.clickedObject = null;
         this.selectionRectangle = null;
         this.initialSize = null;
         this.initialRotation = 0;
         this.lastCickTime = 0;
-        this.handleTouchedType = '';
         this._zoom = 0;
         this._zoomPoint = null;
         this._screenPosition = new V();
@@ -269,31 +268,26 @@
                 continue;
             }
 
-            if (this.checkSelectedObjects(object.children, event)) {
+//            var foundObject = this.checkSelectedObjects(object.children, event);
+//
+//            if (foundObject) {
+//                return foundObject;
+//            }
+
+            // check handles only for selected items
+
+
+            // TODO REMOVE this.handleTouchedType = 
+            // this.isHandleTouched = true;
+
+            if (object.checkHandles(event.point)) {
+
+                this.handlesClickedObject = object;
+                object.save();
+
+                this.handlesClickedObject.onHandleDown(event, this);
+
                 return true;
-            }
-
-            if (object.isSelected) {
-                // check handles only for selected items
-                this.handleTouchedType = object.checkHandles(event.point);
-
-                if (this.handleTouchedType) {
-
-                    this.isHandleTouched = true;
-                    this.clickedObject = object;
-                    object.save();
-
-                    if (this.handleTouchedType === 'rotate') {
-                        this.initialRotation = object.rotation;
-                    } else if (this.handleTouchedType === 'resize') {
-                        var w = object._width / 2;
-                        var h = object._height / 2;
-                        this.initialSize = Math.sqrt(Math.pow(w, 2) + Math.pow(h, 2));
-
-                    }
-
-                    return true;
-                }
             }
 
         }
@@ -317,33 +311,34 @@
         this.isClickedInsideObject = false;
         this.isClickedInsideSameObject = false;
         this.isSelectionStarted = false;
-        this.isHandleTouched = false;
-        this.handleTouchedType = '';
         this.mouseDownPosition.copy(event.point);
+        this.handlesClickedObject = null;
+        this.clickedObject = null;
 
         this.htmlInterface.contextMenu.close();
 
-        if (this.checkSelectedObjects(this.activeLayer.children, event)) {
+        // check if we are touching a handle of the selected objects
+        if (this.checkSelectedObjects(this.selectedObjects, event)) {
             return;
         }
 
+        // recursivly check if an object was clicked down
         var object = this.checkPointInChildren(this.activeLayer.children, event);
 
         if (object) {
 
             if (this.shortcuts.isCtrlPressed) {
+
                 if (object.isSelected) {
                     this.deselectObject(object);
                 } else {
-
                     if (this.selectedObjects.length && this.selectedObjects[0].parent.id !== object.parent.id) {
 
                     } else {
                         this.addObjectToSelection(object);
                     }
-
-
                 }
+
             } else {
                 var isOneOfUs = false;
 
@@ -356,17 +351,13 @@
                         this.clickedObject = object;
                     }
 
-
-
                 }
-
-
 
                 if (!isOneOfUs) {
 
                     this.deselectAllObjects();
-
                     object.save();
+
                     if (this.clickedObject && object.id === this.clickedObject.id) {
                         this.isClickedInsideSameObject = true;
                     } else {
@@ -378,7 +369,6 @@
             }
 
         } else {
-            this.clickedObject = null;
             // for ctrl select more object this will need to change
             this.deselectAllObjects();
         }
@@ -394,9 +384,7 @@
             var p = V.addition(offset, pp);
             this.moveScreenTo(p);
             return;
-        }
-
-        if (this.shortcuts.isCtrlPressed) {
+        } else if (this.shortcuts.isCtrlPressed) {
 
             var object = this.checkPointInChildren(this.activeLayer.children, event);
             if (object) {
@@ -423,40 +411,8 @@
                 app.input.restoreCursor();
             }
             return;
-        }
-
-        if (this.handleTouchedType === 'rotate') {
-
-            var gp = this.clickedObject.getGlobalPosition();
-
-            var r = Math.getAngle(event.point, gp) + Math.degreesToRadians(90);
-
-            var values = [Math.degreesToRadians(0), Math.degreesToRadians(90), Math.degreesToRadians(180), Math.degreesToRadians(270)];
-
-            r = this.snapTo(r, values, Math.degreesToRadians(5));
-
-            this.clickedObject.rotation = r;
-            this.clickedObject.updateSensor();
-            this.clickedObject.updateFrame();
-
-        } else if (this.handleTouchedType === 'resize') {
-
-            // 20 is the padding
-            var gp = this.clickedObject.getGlobalPosition();
-
-            // find the center
-            var o = this.clickedObject;
-            gp.x += -o.anchor.x * o._width * o.scale.x + o._width / 2 * o.scale.x;
-            gp.y += -o.anchor.y * o._height * o.scale.y + o._height / 2 * o.scale.y;
-
-            var distance = Math.getDistance(event.point, gp) - 20;
-
-            var scale = distance / this.initialSize;
-
-            this.clickedObject.scale.set(scale, scale);
-            this.clickedObject.updateSensor();
-            this.clickedObject.updateFrame();
-
+        } else if (this.handlesClickedObject) {
+            this.handlesClickedObject.onHandleMove(event, this);
         } else if (this.selectedObjects.length) {
 
             if (!this.isSelectionStarted) {
@@ -508,7 +464,7 @@
 
         if (this.shortcuts.isCtrlPressed) {
             if (this.targetDropObject) {
-               
+
                 var targetAP = this.targetDropObject.getGlobalPosition();
 
                 for (var i = 0; i < this.selectedObjects.length; i++) {
@@ -539,17 +495,21 @@
         var dt = app.pixi.ticker.lastTime - this.lastCickTime;
 
         if (dt < 300 && this.isClickedInsideObject) {
-            if (this.clickedObject instanceof LabelObject) {
+
+            var object = this.selectedObjects[0];
+            if (object.properties) {
                 this.htmlInterface.activateTab('properties');
-               // this.htmlInterface.htmlTopTools.showTextEdit(this.clickedObject);
-            } else if (this.clickedObject instanceof ImageObject) {
-                this.htmlInterface.activateTab('properties');
+            } else {
+                this.htmlInterface.activateTab('commonProperties');
             }
+
         } else {
             this.htmlInterface.htmlTopTools.hideTextEdit();
         }
 
-        if (this.isClickedInsideObject) {
+        if (this.handlesClickedObject) {
+            this.handlesClickedObject.onHandleUp(event, this);
+        } else if (this.isClickedInsideObject) {
 
 
             // it can be selection if dragging did not take place
@@ -559,6 +519,7 @@
 
                 } else if (!this.selectionRectangle) {
                     this.deselectAllObjects();
+                    //lets add the object to the selection
                     this.addObjectToSelection(this.clickedObject);
 
                 }
@@ -582,21 +543,7 @@
             }
         } else {
 
-            if (this.handleTouchedType === 'resize') {
-
-                this.initialSize = null;
-
-                var x = this.clickedObject.scale.x;
-                var y = this.clickedObject.scale.y;
-
-                this.clickedObject.scale.set(this.clickedObject.originalScale.x, this.clickedObject.originalScale.y);
-
-                var command = new CommandScale(this.clickedObject, x, y);
-                this.commands.add(command);
-
-            } else if (this.handleTouchedType === 'rotate') {
-
-            } else if (!this.isSelectionStarted) {
+            if (!this.isSelectionStarted) {
 
                 //this.checkPointInChildren(this.activeLayer.children, event);
 
@@ -790,29 +737,12 @@
 
     };
 
-    MainScreen.prototype.snapTo = function (value, values, tolerance) {
-
-        for (var i = 0; i < values.length; i++) {
-            var v = values[i];
-            if (value < (v + tolerance) && value > (v - tolerance)) {
-                return v;
-            }
-        }
-
-        return value;
-    };
-
     MainScreen.prototype.importSavedData = function () {
         var jsonData = store.get('editor-saved-content');
-        var data = JSON.parse(jsonData);
-
-        if (data && data.objects && data.objects.length) {
-
-            this.importer.import(data.objects);
-
+        if (jsonData) {
+            var data = JSON.parse(jsonData);
+            this.importer.import(data);
         }
-
-        this.moveScreenTo(data.screenPosition);
 
     };
 
@@ -851,7 +781,7 @@
 
     };
 
-    MainScreen.prototype.addLayer = function (name, factor, id) {
+    MainScreen.prototype.addLayer = function (name, factor, id, isInputContent) {
 
         var oldP = new V().copy(this._screenPosition);
 
@@ -875,6 +805,7 @@
 
         layer.name = name;
         layer.factor = factor;
+        layer.isInputContent = isInputContent;
         layer.build();
 
         if (!id) {
@@ -1007,6 +938,15 @@
         return true;
 
     };
+
+    MainScreen.prototype.onSelectedObjectPropertyChange = function (property, value, element, inputType, feedbackID) {
+        for (var i = 0; i < this.selectedObjects.length; i++) {
+            var object = this.selectedObjects[i];
+            object.onPropertyChange(this, property, value, element, inputType, feedbackID);
+        }
+    };
+
+
 
     MainScreen.prototype.blank = function () {
         // used to call it , and do nothing

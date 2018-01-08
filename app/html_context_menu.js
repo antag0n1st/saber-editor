@@ -13,8 +13,8 @@
     };
 
     HtmlContextMenu.prototype.build = function (objects) {
-        
-      
+
+
 
         var html = '';
 
@@ -28,24 +28,32 @@
         html += '</a>';
         html += '</li>';
 
+        html += '<li role="presentation" data-action="convertToButton" >';
+        html += '<a id="contextConvertToButton" href="#" role="menuitem">';
+        html += '<i class="fa fa-fw fa-lg fa-exchange"></i> ';
+        html += '<span class="actionName">Convert To Btn</span>';
+        html += '</a>';
+        html += '</li>';
+
         html += '</ul>';
         html += ' </div>';
 
         var container = document.createElement("div");
         container.innerHTML = html;
         var cm = container.getElementsByTagName('div')[0];
-
-
         var oldContextMenu = document.getElementById('contextMenu');
-
         if (oldContextMenu) {
             document.body.removeChild(oldContextMenu);
         }
-
         document.body.appendChild(cm);
-        
+
+        // bind events here
+
         var contextEdit = document.getElementById('contextEdit');
         contextEdit.onclick = this.onContextEditBtn.bind(this);
+
+        var contextConvertToButton = document.getElementById('contextConvertToButton');
+        contextConvertToButton.onclick = this.onContextConvertToBtn.bind(this);
 
         this.htmlInterface.contextMenuHtml = document.getElementById('contextMenu');
 
@@ -101,7 +109,7 @@
         this.htmlInterface.contextMenuHtml.style.display = 'block';
         this.htmlInterface.contextMenuHtml.style.left = x + 'px';
         this.htmlInterface.contextMenuHtml.style.top = y + 'px';
-        
+
     };
 
     HtmlContextMenu.prototype.close = function () {
@@ -111,16 +119,65 @@
         }
 
     };
-    
-    HtmlContextMenu.prototype.onContextEditBtn = function(){
-        
-       this.close();    
-       
-       // only if the object is a label
-       
-       this.htmlInterface.htmlTopTools.showTextEdit(this.editor.selectedObjects[0]);
-       
+
+    HtmlContextMenu.prototype.onContextEditBtn = function () {
+
+        this.close();
+
+        // only if the object is a label
+
+        this.htmlInterface.htmlTopTools.showTextEdit(this.editor.selectedObjects[0]);
+
     };
+
+    HtmlContextMenu.prototype.onContextConvertToBtn = function () {
+        var object = this.editor.selectedObjects[0];
+        
+        this.editor.deselectAllObjects();
+
+        var imageName = object.imageName;
+        var p = new V().copy(object.position);
+
+//        var btn = new Button("Default", {
+//            imageNormal: imageName,
+//            imageSelected: imageName
+//        }, Button.TYPE_NINE_SLICE);
+
+        //log(btn);
+
+        var btn = new ButtonObject(imageName);
+     //  var btn = new ImageObject(imageName);
+        btn.position = p;
+        
+        btn.build();
+
+        var batch = new CommandBatch();
+
+       // log(object.parent);
+
+        var deleteCommand = new CommandDelete(object, this.editor);
+        var addCommand = new CommandAdd(btn, object.parent, this.editor);
+
+        
+        batch.add(addCommand);
+        batch.add(deleteCommand);
+
+        this.editor.commands.add(batch);
+        
+        this.editor.deselectAllObjects();
+        this.editor.addObjectToSelection(btn);
+
+        //  this.editor.deselectAllObjects();
+        //    this.editor.addObjectToSelection(btn);
+
+        // object = btn;
+
+        this.close();
+
+
+    };
+
+
 
     window.HtmlContextMenu = HtmlContextMenu;
 

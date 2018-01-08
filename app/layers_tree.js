@@ -209,7 +209,10 @@
 
                             document.getElementById('layerName').value = item.name;
                             document.getElementById('layerFactor').value = item.factor;
-                            document.getElementById('layerID').value = item.id;
+                            document.getElementById('layerID').value = item.id;                            
+                            document.getElementById('layerInputContent').checked = item.isInputContent;
+                            
+                            
                            
                         }.bind(this),
                         icon: 'fa fa-pencil'

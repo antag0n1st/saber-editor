@@ -9,8 +9,8 @@
     Entity.prototype.initialize = function (name) {
 
         this.spriteInitialize(name);
-        
-        this.id = '_change_it_before_use-'+PIXI.utils.uid();
+
+        this.id = '_change_it_before_use-' + PIXI.utils.uid();
 
         this.isSelected = false;
         this.frameSensors = [];
@@ -24,14 +24,18 @@
         this.originalScale = new V();
         this.originalRotation = 0;
 
+        this.initialSize = 0;
+
         this.canResize = true;
         this.hasFrame = true;
-        
+
         this.type = 'Entity';
-        
+
+        this.handleTypeTouched = '';
+
         this.constraintX = null;
         this.constraintY = null;
-        
+
 
     };
 
@@ -62,26 +66,20 @@
     };
 
     Entity.prototype.dragBy = function (position) {
-
         this.position.set(this.originalPosition.x + position.x, this.originalPosition.y + position.y);
-
     };
 
     Entity.prototype.select = function () {
-
         this.isSelected = true;
-
     };
 
     Entity.prototype.deselect = function () {
-
         this.isSelected = false;
-
     };
 
     Entity.prototype.drawFrame = function (graphics) {
-        
-        if(!this.hasFrame){
+
+        if (!this.hasFrame) {
             return;
         }
 
@@ -143,36 +141,9 @@
 
     };
 
-    Entity.prototype.checkHandles = function (point) {
-        
-        if(!this.hasFrame){
-            return false;
-        }
-
-        var globalP = this.getGlobalPosition();
-        var p = V.substruction(point, globalP);
-
-        if (this.canResize) {
-            // check resize handles
-            for (var i = 0; i < this.frameSensors.length; i++) {
-                var handle = this.frameSensors[i];
-                if (SAT.pointInCircle(p, handle)) {
-                    return 'resize';
-                }
-            }
-        }
-
-        if (SAT.pointInCircle(p, this.rotationHandle)) {
-            return 'rotate';
-        }
-
-        return false;
-
-    };
-
     Entity.prototype.updateFrame = function () {
-        
-        if(!this.hasFrame){
+
+        if (!this.hasFrame) {
             return false;
         }
 
@@ -199,8 +170,6 @@
 
         }
 
-        // update rotation handle
-        //  var dy =  this.height*this.scale.y;
         var rh = new V();
         var d = Math.getDistance(this.frameSensors[0].pos, this.frameSensors[3].pos) - this.scale.y * this._height * this.anchor.y;
 
@@ -211,23 +180,153 @@
 
     };
 
+    Entity.prototype.checkHandles = function (point) {
+
+        if (!this.hasFrame) {
+            return false;
+        }
+
+        var globalP = this.getGlobalPosition();
+        var p = V.substruction(point, globalP);
+
+        if (this.canResize) {
+            // check resize handles
+            for (var i = 0; i < this.frameSensors.length; i++) {
+                var handle = this.frameSensors[i];
+                if (SAT.pointInCircle(p, handle)) {
+                    this.handleTypeTouched = 'resize';
+                    return true;
+                }
+            }
+        }
+
+        if (SAT.pointInCircle(p, this.rotationHandle)) {
+            this.handleTypeTouched = 'rotate';
+            return true;
+        }
+
+        return false;
+
+    };
+
+    Entity.prototype.onHandleDown = function (event, editor) {
+
+        if (this.handleTypeTouched === 'resize') {
+            this._downResize(event, editor);
+        }
+
+    };
+
+    Entity.prototype._downResize = function (event, editor) {
+        var w = this._width / 2;
+        var h = this._height / 2;
+        this.initialSize = Math.sqrt(Math.pow(w, 2) + Math.pow(h, 2));
+    };
+
+    Entity.prototype.onHandleMove = function (event, editor) {
+
+        if (this.handleTypeTouched === 'rotate') {
+            this._moveRotate(event, editor);
+        } else if (this.handleTypeTouched === 'resize') {
+            this._moveResize(event, editor);
+        }
+
+    };
+
+    Entity.prototype._moveResize = function (event, editor) {
+        var gp = this.getGlobalPosition();
+
+        // find the center
+        var o = this;
+        gp.x += -o.anchor.x * o._width * o.scale.x + o._width / 2 * o.scale.x;
+        gp.y += -o.anchor.y * o._height * o.scale.y + o._height / 2 * o.scale.y;
+
+        // 20 is the padding
+        var distance = Math.getDistance(event.point, gp) - 20;
+
+        var scale = distance / this.initialSize;
+
+        this.scale.set(scale, scale);
+        this.updateSensor();
+        this.updateFrame();
+    };
+
+    Entity.prototype._moveRotate = function (event, editor) {
+        var gp = this.getGlobalPosition();
+
+        var r = Math.getAngle(event.point, gp) + Math.degreesToRadians(90);
+
+        var values = [Math.degreesToRadians(0), Math.degreesToRadians(90), Math.degreesToRadians(180), Math.degreesToRadians(270)];
+
+        r = this.snapTo(r, values, Math.degreesToRadians(5));
+
+        this.rotation = r;
+        this.updateSensor();
+        this.updateFrame();
+    };
+
+    Entity.prototype.onHandleUp = function (event, editor) {
+
+        if (this.handleTypeTouched === 'resize') {
+            this._upResize(event, editor);
+        } else if (this.handleTypeTouched === 'rotate') {
+            this._upRotate(event, editor);
+        }
+
+    };
+
+    Entity.prototype._upRotate = function (event, editor) {
+
+        var nR = this.rotation;
+        this.rotation = this.originalRotation;
+        var command = new CommandProperty(this, 'rotation', nR, function () {
+            this.updateSensor();
+            this.updateFrame();
+        }, this);
+        editor.commands.add(command);
+    };
+
+    Entity.prototype._upResize = function (event, editor) {
+        this.initialSize = null;
+
+        var x = this.scale.x;
+        var y = this.scale.y;
+
+        this.scale.set(this.originalScale.x, this.originalScale.y);
+
+        var command = new CommandScale(this, x, y);
+        editor.commands.add(command);
+    };
+
+    Entity.prototype.snapTo = function (value, values, tolerance) {
+
+        for (var i = 0; i < values.length; i++) {
+            var v = values[i];
+            if (value < (v + tolerance) && value > (v - tolerance)) {
+                return v;
+            }
+        }
+
+        return value;
+    };
+
     Entity.prototype.basicExport = function (o) {
 
         o = o || {};
 
         o.position = {
             x: Math.roundDecimal(this.position.x, 2),
-            y:  Math.roundDecimal(this.position.y, 2)
+            y: Math.roundDecimal(this.position.y, 2)
         };
 
         o.anchor = {
-            x:  Math.roundDecimal(this.anchor.x, 2),
-            y:  Math.roundDecimal(this.anchor.y, 2)
+            x: Math.roundDecimal(this.anchor.x, 2),
+            y: Math.roundDecimal(this.anchor.y, 2)
         };
 
         o.scale = {
-            x:  Math.roundDecimal(this.scale.x, 2),
-            y:  Math.roundDecimal(this.scale.y, 2)
+            x: Math.roundDecimal(this.scale.x, 2),
+            y: Math.roundDecimal(this.scale.y, 2)
         };
 
         o.rotation = Math.roundDecimal(this.rotation, 2);
@@ -237,18 +336,22 @@
         o.children = [];
         o.type = this.type;
         o.id = this.id;
-        
-        if(this.constraintX){
+
+        if (this.properties) {
+            o.properties = this.properties;
+        }
+
+        if (this.constraintX) {
             o.constraintX = this.constraintX.value;
         }
-        
-        if(this.constraintY){
+
+        if (this.constraintY) {
             o.constraintY = this.constraintY.value;
         }
-        
+
         for (var i = 0; i < this.children.length; i++) {
             var c = this.children[i];
-            if(c.export){
+            if (c.export) {
                 o.children.push(c.export());
             }
         }
@@ -256,36 +359,54 @@
         return o;
 
     };
-    
+
     Entity.prototype.setBasicData = function (data) {
-        this.position.set(data.position.x,data.position.y);
-        this.anchor.set(data.anchor.x,data.anchor.y);
-        this.scale.set(data.scale.x,data.scale.y);
+
+        this.position.set(data.position.x, data.position.y);
+        this.anchor.set(data.anchor.x, data.anchor.y);
+        this.scale.set(data.scale.x, data.scale.y);
         this.tag = data.tag;
         this.zIndex = data.zIndex;
         this.rotation = data.rotation;
         this.alpha = data.alpha;
         this.type = data.type;
-        
-        if(data.constraintX){
-            this.constraintX = new Constraint(this,'x',data.constraintX);
+
+        if (data.properties) {
+
+            for (var key in data.properties) {
+                if (data.properties.hasOwnProperty(key)) {
+                    this.properties[key] = data.properties[key];
+                }
+            }
+
         }
-        
-        if(data.constraintY){
-            this.constraintY = new Constraint(this,'y',data.constraintY);
+
+        if (data.constraintX) {
+            this.constraintX = new Constraint(this, 'x', data.constraintX);
         }
-        
-        if(!data.id.startsWith('_change_it_before_use-')){
+
+        if (data.constraintY) {
+            this.constraintY = new Constraint(this, 'y', data.constraintY);
+        }
+
+        if (!data.id.startsWith('_change_it_before_use-')) {
             this.id = data.id;
         }
-        
-        //TODO maybe dadd children here
+
+    };
+
+    Entity.prototype.bindProperties = function (editor) {
+
+    };
+
+    Entity.prototype.onPropertyChange = function (editor, property, value, element, inputType, feedbackID) {
+
     };
 
     Entity.prototype.export = function () {
         throw "This object needs to write an Export method";
     };
-    
+
     Entity.prototype.build = function () {
         throw "This object needs to write a build method";
     };

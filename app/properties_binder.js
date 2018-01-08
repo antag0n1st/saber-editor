@@ -13,7 +13,7 @@
 
     PropertiesBinder.prototype.bindSelected = function () {
 
-        if (this.editor.htmlInterface.propertiesPanel.style.display === "none") {
+        if (this.editor.htmlInterface.commonPropertiesPanel.style.display === "none") {
             return;
         }
 
@@ -69,7 +69,7 @@
             html += cx.html;
             html += cy.html;
 
-            this.editor.htmlInterface.propertiesContent.innerHTML = html;
+            this.editor.htmlInterface.commonPropertiesContent.innerHTML = html;
 
             // validate fields
 

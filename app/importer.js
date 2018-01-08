@@ -31,7 +31,21 @@
         
     };
     
-    Importer.prototype.import = function(objects){
+    Importer.prototype.import = function(data){
+        
+        if (data && data.objects && data.objects.length) {
+
+            this.importObjects(data.objects);
+
+        }
+        
+        document.getElementById('exportFileName').value = data.fileName;
+
+        this.editor.moveScreenTo(data.screenPosition);
+        
+    };
+    
+    Importer.prototype.importObjects = function(objects){
         
         var batch = new CommandBatch();
         
@@ -77,6 +91,21 @@
     };
     
     Importer.prototype.export = function(){
+        
+        var data = {};
+
+        data.objects = this.exportObjects();
+        data.screenPosition = {
+            x: this.editor._screenPosition.x,
+            y: this.editor._screenPosition.y
+        };
+        data.fileName = document.getElementById('exportFileName').value;
+        
+        return data;
+        
+    };
+    
+    Importer.prototype.exportObjects = function(){
         
         var exportedObjects = [];
         

@@ -21,7 +21,7 @@
 
 
         this.centered();
-
+        
 
 
     };
@@ -59,7 +59,7 @@
 
         if (data) {
             this.setBasicData(data);
-            this.setTexture(data.imageName);
+          //  this.setTexture(data.imageName);
             this.label.txt = data.txt;
 
 

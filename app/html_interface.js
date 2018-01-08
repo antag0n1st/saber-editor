@@ -16,7 +16,7 @@
         app.pixi.renderer.view.ondrop = this.canvasDrop.bind(this);
         app.pixi.renderer.view.ondragover = this.canvasAllowDrop.bind(this);
 
-        this.tabs = ['imageLibrary', 'properties', 'settings', 'layers'];
+        this.tabs = ['imageLibrary', 'commonProperties', 'settings', 'layers', 'properties'];
 
         this.createTabs();
         this.bindHTML();
@@ -59,6 +59,9 @@
 
         this.localFileLoaderBtn = document.getElementById('localFileLoaderBtn');
         this.localFileLoaderBtn.onchange = this.onLocalFileLoaderBtn.bind(this);
+
+        this.importJSONBtn = document.getElementById('importJSONBtn');
+        this.importJSONBtn.onchange = this.onImportJSONBtn.bind(this);
 
 
         // SETTINGS PANEL
@@ -133,8 +136,21 @@
         this.htmlLibrary.show();
     };
 
-    HtmlInterface.prototype.onProperties = function () {
+    HtmlInterface.prototype.onCommonProperties = function () {
         this.editor.propertiesBinder.bindSelected();
+    };
+
+    HtmlInterface.prototype.onProperties = function () {
+
+        if (this.editor.selectedObjects.length) {
+
+            if (this.editor.selectedObjects.length === 1) {
+                this.editor.selectedObjects[0].bindProperties(this.editor);
+            }
+
+        }
+
+        //this.editor.propertiesBinder.bindSelected();
     };
 
     HtmlInterface.prototype.onLayers = function () {
@@ -152,17 +168,10 @@
         }
     };
 
-
     // called when the save button is clicked
     HtmlInterface.prototype.onSaveContent = function () {
 
-        var data = {};
-
-        data.objects = this.editor.importer.export();
-        data.screenPosition = {
-            x: this.editor._screenPosition.x,
-            y: this.editor._screenPosition.y
-        };
+        var data = this.editor.importer.export();
 
         var jsonString = JSON.stringify(data);
 
@@ -173,27 +182,88 @@
     };
 
     HtmlInterface.prototype.onExportBtn = function () {
-        var objects = this.editor.importer.export();
+        var data = this.editor.importer.export();
+
+        var fileName = document.getElementById('exportFileName').value;
+
+        if (!fileName) {
+            toastr.error("Please specify a file name");
+            return;
+        }
+
+        if (!fileName.endsWith('.json')) {
+            fileName += '.json';
+            document.getElementById('exportFileName').value = fileName;
+        }
+
+        var sendData = {
+            file_name: fileName,
+            data: JSON.stringify(data)
+
+        };
+
+        ajaxPost('app/php/export.php', sendData, function (response) {
+            toastr.success(response.message);
+        });
+
     };
 
     HtmlInterface.prototype.onLocalFileLoaderBtn = function (e) {
         this.editor.localReader.selectFolder(e);
     };
 
+    HtmlInterface.prototype.onImportJSONBtn = function (evt) {
+
+        var files = evt.target.files; // FileList object        
+        
+        var importer = this.editor.importer;
+        importer.clearStage();
+
+        for (var i = 0, f; f = files[i]; i++) {
+
+            // Only process image files.
+            if (!f.name.endsWith('.json')) {
+                toastr.error('Please select a JSON file!');
+                break;
+            }
+
+            var reader = new FileReader();
+            document.getElementById('exportFileName').value = f.name;
+
+            // Closure to capture the file information.
+            reader.onload = (function (theFile) {
+                return function (e) {
+                   var data = JSON.parse(e.target.result);
+                   importer.import(data);
+                   toastr.success('File Imported with success.');
+                };
+            })(f);
+
+            // Read in the image file as a data URL.
+            reader.readAsText(f);
+        }
+    };
+
+
+
     HtmlInterface.prototype.onAddLayerBtn = function () {
         var name = document.getElementById('layerName').value;
         var factor = document.getElementById('layerFactor').value;
         var id = document.getElementById('layerID').value;
+        var isLayerInputContent = document.getElementById('layerInputContent').checked;
+
+        // log(isLayerInputContent)
 
         if (name && factor) {
 
-            this.editor.addLayer(name, factor, id);
+            this.editor.addLayer(name, factor, id, isLayerInputContent);
 
             $("#addLayerModal").modal('hide');
 
             document.getElementById('layerName').value = '';
             document.getElementById('layerFactor').value = '';
             document.getElementById('layerID').value = '';
+            document.getElementById('layerInputContent').checked = false;
         }
 
     };

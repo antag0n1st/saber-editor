@@ -14,10 +14,12 @@
         this.factor = 1;
         this.index = 0;
         this.type = 'Layer';
-        this.isActive = false;
+        this.isActive = false; // if it is focused ( can edit its children in the editor)
 
         this.canResize = false;
         this.hasFrame = false;
+        
+        this.isInputContent = false;
         
     };
 
@@ -29,6 +31,7 @@
             this.name = data.name;
             this.factor = Number(data.factor);
             this.isActive = data.isActive ? true : false;
+            this.isInputContent = data.isInputContent ? true : false;
             
         }
         this.enableSensor();
@@ -48,6 +51,7 @@
         o.name = this.name;
         o.factor = this.factor;
         o.isActive = this.isActive;
+        o.isInputContent = this.isInputContent;
         
         o.scale.x = 1;
         o.scale.y = 1;
