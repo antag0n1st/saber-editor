@@ -492,6 +492,8 @@
 
         if (dt < 300 && this.isClickedInsideObject) {
 
+            // double click
+
             var object = this.selectedObjects[0];
             if (object.properties) {
                 this.htmlInterface.activateTab('properties');
@@ -723,7 +725,7 @@
 
 
     };
-    
+
     MainScreen.prototype.onResize = function (width, height) {
 
         this.repatable.width = width;
@@ -815,7 +817,7 @@
 
     MainScreen.prototype.setDefaultLayer = function () {
         // if there are no layers , then we are going to create one
-        
+
         if (!this.content.children.length) {
             this.addLayer('Default Layer', 1);
             this.content.children[0].isActive = true;
@@ -896,6 +898,23 @@
             this.htmlInterface.htmlTopTools.hideZIndexButtons();
         }
 
+        if (this.selectedObjects.length === 0) {
+            // empty , unbind all
+
+            if (this.htmlInterface.propertiesPanel.style.display === "block") {
+                this.htmlInterface['propertiesContent'].innerHTML = '';
+            } else if (this.htmlInterface.commonPropertiesPanel.style.display === "block") {
+                this.htmlInterface['commonPropertiesContent'].innerHTML = '';
+            }
+
+        } else {
+            if (this.htmlInterface.propertiesPanel.style.display === "block") {
+                this.htmlInterface.onProperties();
+            } else if (this.htmlInterface.commonPropertiesPanel.style.display === "block") {
+                this.htmlInterface.onCommonProperties();
+            }
+        }
+
     };
 
     MainScreen.prototype.isInputActive = function () {
@@ -936,7 +955,7 @@
     MainScreen.prototype.onSelectedObjectPropertyChange = function (property, value, element, inputType, feedbackID) {
         for (var i = 0; i < this.selectedObjects.length; i++) {
             var object = this.selectedObjects[i];
-            object.onPropertyChange(this, property, value, element, inputType, feedbackID);
+            object._onPropertyChange(this, property, value, element, inputType, feedbackID);
         }
     };
 

@@ -34,6 +34,13 @@
         html += '<span class="actionName">Convert To Btn</span>';
         html += '</a>';
         html += '</li>';
+        
+        html += '<li role="presentation" data-action="convertToInput" >';
+        html += '<a id="contextConvertToInput" href="#" role="menuitem">';
+        html += '<i class="fa fa-fw fa-lg fa-exchange"></i> ';
+        html += '<span class="actionName">Convert To Input</span>';
+        html += '</a>';
+        html += '</li>';
 
         html += '</ul>';
         html += ' </div>';
@@ -54,6 +61,9 @@
 
         var contextConvertToButton = document.getElementById('contextConvertToButton');
         contextConvertToButton.onclick = this.onContextConvertToBtn.bind(this);
+        
+        var contextConvertToInput = document.getElementById('contextConvertToInput');
+        contextConvertToInput.onclick = this.onContextConvertToInput.bind(this);
 
         this.htmlInterface.contextMenuHtml = document.getElementById('contextMenu');
 
@@ -159,8 +169,37 @@
         this.close();
 
     };
+    
+    HtmlContextMenu.prototype.onContextConvertToInput = function () {
+        var object = this.editor.selectedObjects[0];
+        
+        this.editor.deselectAllObjects();
 
+        var imageName = object.imageName;
+        var p = new V().copy(object.position);
 
+        var input = new InputObject(imageName);
+        input.position = p;
+        
+        input.build();
+
+        var batch = new CommandBatch();
+
+        var deleteCommand = new CommandDelete(object, this.editor);
+        var addCommand = new CommandAdd(input, object.parent, this.editor);
+        
+        batch.add(addCommand);
+        batch.add(deleteCommand);
+
+        this.editor.commands.add(batch);
+        
+        this.editor.deselectAllObjects();
+        this.editor.addObjectToSelection(input);
+
+        this.close();
+    };
+
+    
 
     window.HtmlContextMenu = HtmlContextMenu;
 

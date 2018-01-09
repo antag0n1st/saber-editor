@@ -83,7 +83,7 @@
         }
 
         feedback.className = feedback.className.replace(/  +/g, " ");
-       
+
 
     };
 
@@ -158,6 +158,54 @@
         html += '</div>';
 
         return {html: html, id: id};
+
+    };
+
+    var checkboxOpt = {
+        name: '',
+        displayName: '',
+        class: '',
+        method: '',
+        checked: false,
+        isDisabled: false
+    };
+
+    HtmlElements.createCheckbox = function (options) {
+
+
+        var className = options.class || 'big';
+        var method = options.method || "propertiesBinder.onPropertyChange";
+
+        var name = options.name || '';
+        var displayName = options.displayName || name;
+        if (displayName === name) {
+            displayName = displayName.replace('_', ' ').capitalize();
+        }
+        
+        var checked = options.checked;
+
+
+        var id = "htmlElementId-" + PIXI.utils.uid();
+
+
+        var html = '<div class="' + className + ' ' + (options.feedback ? 'has-feedback' : '') + '">';
+        html += '<label ';
+        html += ' style="cursor:pointer;" ';
+        html += 'for="' + id + '"';
+        html += '>';
+        html += displayName + ': </label>';
+        html += ' <input ' + (options.isDisabled ? "disabled" : "");
+        html += ' class="" ';
+        html += checked ? ' checked="checked" ' : '';
+        html += ' style="cursor:pointer;" ';
+        html += ' id="' + id + '" ';
+        html += ' type="checkbox" ';
+        html += ' onchange="app.navigator.currentScreen.' + method + '(\'' + name + '\',this.value,this,\'checkbox\',null);" ';
+        html += ' />';
+
+        html += '</div>';
+
+        return {html: html, id: id, feedbackID: null};
 
     };
 

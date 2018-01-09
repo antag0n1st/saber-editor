@@ -258,6 +258,12 @@ body{
 
 }
 
+.content div.big input[type=checkbox]{
+    width: auto;
+    margin-right: 225px;
+    margin-left: 2px;
+}
+
 .content div.small{
     font-size: inherit;
     width: 160px;
@@ -268,6 +274,11 @@ body{
 .content div.small input{
     font-size: inherit;
     width: 80px;
+}
+
+.content div.small input[type=checkbox]{
+    font-size: inherit;
+    width: 50px;
 }
 
 .image-button{

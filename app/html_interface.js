@@ -138,10 +138,11 @@
 
     HtmlInterface.prototype.onCommonProperties = function () {
         this.editor.propertiesBinder.bindSelected();
+        
     };
 
     HtmlInterface.prototype.onProperties = function () {
-
+        
         if (this.editor.selectedObjects.length) {
 
             if (this.editor.selectedObjects.length === 1) {
@@ -150,7 +151,6 @@
 
         }
 
-        //this.editor.propertiesBinder.bindSelected();
     };
 
     HtmlInterface.prototype.onLayers = function () {
@@ -244,8 +244,6 @@
             reader.readAsText(f);
         }
     };
-
-
 
     HtmlInterface.prototype.onAddLayerBtn = function () {
         var name = document.getElementById('layerName').value;

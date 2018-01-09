@@ -396,11 +396,19 @@
     };
 
     Entity.prototype.bindProperties = function (editor) {
-
+        // it will be overwritten
     };
 
-    Entity.prototype.onPropertyChange = function (editor, property, value, element, inputType, feedbackID) {
-
+    Entity.prototype._onPropertyChange = function (editor, property, value, element, inputType, feedbackID) {
+        // it will be overwritten
+        if(this.onPropertyChange){
+            this.onPropertyChange(editor, property, value, element, inputType, feedbackID);
+        }
+        
+        if(this.constraintX || this.constraintY){
+            editor.constraints.applyValues();
+        }
+        
     };
 
     Entity.prototype.export = function () {
