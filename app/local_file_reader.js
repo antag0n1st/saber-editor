@@ -37,8 +37,6 @@
                 var files = this.allFiles;
                 this.allFiles = [];
                 
-               // log(files)
-
                 this.delegate.onFilesReaded(files, this);
             }
 

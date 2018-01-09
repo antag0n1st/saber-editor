@@ -51,12 +51,16 @@
                 app.libraryImages = resources;
                 
                 app.addToLoader(resources);
-                
+                                
                 ContentManager.downloadResources(function () {
-
-                    app.navigator.currentScreen.loadingBar.setPercent(1, true);
+                    
+                    app.navigator.currentScreen.loadingBar.setPercent(1, false);
+                    
                     var screen = applyToConstructor(window[Config.initialScreen], Config.initialScreenArgs);
-                    app.navigator.add(screen);
+                    
+                    timeout(function(){
+                        app.navigator.add(screen);
+                    },200);                    
 
                 }, this);
 
@@ -135,7 +139,6 @@
 
         this.navigator.update(step); // update the sceen and its objects
 
-        //log(this.pixi.ticker.elapsedMS)
     };
 
     App.prototype.adjustCanvasPositionCentered = function (canvas) {
@@ -179,7 +182,7 @@
         for (var i = 0; i < this.navigator.screens.length; i++) {
             var screen = this.navigator.screens[i];
             // screen.set_size(this.width, this.height);
-            screen.onResize(this.width, this.height);
+            screen._onResize(this.width, this.height);
         }
 
         this.adjustToolbars();

@@ -80,10 +80,6 @@
         this.importSavedData();
         this.setDefaultLayer();
 
-
-        this.constraints = new Constraints(this);
-
-
     };
 
     MainScreen.prototype.onLibraryImageDropped = function (id) {
@@ -727,13 +723,11 @@
 
 
     };
-
+    
     MainScreen.prototype.onResize = function (width, height) {
 
         this.repatable.width = width;
         this.repatable.height = height;
-
-        this.constraints.applyValues();
 
     };
 
@@ -821,7 +815,7 @@
 
     MainScreen.prototype.setDefaultLayer = function () {
         // if there are no layers , then we are going to create one
-
+        
         if (!this.content.children.length) {
             this.addLayer('Default Layer', 1);
             this.content.children[0].isActive = true;

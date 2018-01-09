@@ -146,7 +146,6 @@
         return div;
 
         container.appendChild(div);
-        log(container.innerHTML)
         return container.innerHTML;
 
     };

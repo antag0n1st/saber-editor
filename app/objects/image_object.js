@@ -23,8 +23,6 @@
             this.setTexture(data.imageName);
         }
         
-        //log(data)
-
         this.enableSensor();
         this.createFrame(20, 16);
         this.updateSensor();

@@ -138,26 +138,15 @@
         var imageName = object.imageName;
         var p = new V().copy(object.position);
 
-//        var btn = new Button("Default", {
-//            imageNormal: imageName,
-//            imageSelected: imageName
-//        }, Button.TYPE_NINE_SLICE);
-
-        //log(btn);
-
         var btn = new ButtonObject(imageName);
-     //  var btn = new ImageObject(imageName);
         btn.position = p;
         
         btn.build();
 
         var batch = new CommandBatch();
 
-       // log(object.parent);
-
         var deleteCommand = new CommandDelete(object, this.editor);
         var addCommand = new CommandAdd(btn, object.parent, this.editor);
-
         
         batch.add(addCommand);
         batch.add(deleteCommand);
@@ -167,13 +156,7 @@
         this.editor.deselectAllObjects();
         this.editor.addObjectToSelection(btn);
 
-        //  this.editor.deselectAllObjects();
-        //    this.editor.addObjectToSelection(btn);
-
-        // object = btn;
-
         this.close();
-
 
     };
 

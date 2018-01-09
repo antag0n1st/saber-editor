@@ -52,7 +52,7 @@
         loading = (loading <= 0) ? 0.01 : loading;
         loading = (to_load === 0) ? 1 : loading;
 
-        if (loaded && this.lastLoadedCount != loaded) {          
+        if (to_load && loaded && this.lastLoadedCount != loaded) {          
             this.lastLoadedCount = loaded;
             this.loadingBar.setPercent(loading);
         }

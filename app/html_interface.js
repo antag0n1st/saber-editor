@@ -165,6 +165,7 @@
         var r = confirm("Are you sure ?");
         if (r === true) {
             this.editor.importer.clearStage();
+            this.editor.setDefaultLayer();
         }
     };
 
@@ -251,8 +252,6 @@
         var factor = document.getElementById('layerFactor').value;
         var id = document.getElementById('layerID').value;
         var isLayerInputContent = document.getElementById('layerInputContent').checked;
-
-        // log(isLayerInputContent)
 
         if (name && factor) {
 

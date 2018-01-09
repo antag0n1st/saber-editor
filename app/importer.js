@@ -25,13 +25,17 @@
         this.editor.selectedObjects = [];
         this.editor.activeLayer = null;
         
-        this.editor.setDefaultLayer();
+       // this.editor.setDefaultLayer();
         
         this.editor.moveScreenTo(new V());
+        
+        this.editor.constraints.clear();
         
     };
     
     Importer.prototype.import = function(data){
+        
+        this.clearStage();
         
         if (data && data.objects && data.objects.length) {
 
@@ -42,6 +46,11 @@
         document.getElementById('exportFileName').value = data.fileName;
 
         this.editor.moveScreenTo(data.screenPosition);
+        
+        this.editor.constraints.clear();
+        this.editor.constraints._import();
+        this.editor.constraints.rebuildDependencyTree();
+        this.editor.constraints.applyValues();
         
     };
     
