@@ -1,7 +1,10 @@
 <?php
 
 define('DS', DIRECTORY_SEPARATOR);
-$main_dir = getcwd() . DS . '..' . DS . '..' . DS . 'library';
+
+define('ASSETS_DIR', 'library');
+
+$main_dir = getcwd() . DS . '..' . DS . '..' . DS . ASSETS_DIR;
 
 $content = [];
 
@@ -29,7 +32,7 @@ function create_url($dir) {
     $url = str_replace($main_dir, '', $dir);
     $url = str_replace(DS, "/", $url);
     //  return $url;
-    return 'library' . $url . '/';
+    return ASSETS_DIR . $url . '/';
 }
 
 function listFolderFiles($dir, $folder_name) {
@@ -39,7 +42,7 @@ function listFolderFiles($dir, $folder_name) {
     $folder = [];
     $folder['name'] = $folder_name;
     $folder['children'] = [];
-    
+
     foreach ($ffs as $ff) {
 
         if ($ff != '.' && $ff != '..') {
@@ -51,7 +54,7 @@ function listFolderFiles($dir, $folder_name) {
                 // do nothing   
             } else {
 
-                if (endsWith($ff, '.png')) {
+                if (endsWith($ff, '.png') or endsWith($ff, '.jpg') or endsWith($ff, '.jpeg')) {
 
                     $basic = beforeComma($ff);
                     $url = create_url($dir);

@@ -10,17 +10,25 @@
 
         this.htmlTopTools = new HtmlTopTools(this.editor);
 
-        this.htmlLibrary = new HtmlLibrary(this, this.editor);
+
         this.contextMenu = new HtmlContextMenu(this, this.editor);
 
         app.pixi.renderer.view.ondrop = this.canvasDrop.bind(this);
         app.pixi.renderer.view.ondragover = this.canvasAllowDrop.bind(this);
 
-        this.tabs = ['imageLibrary', 'commonProperties', 'settings', 'layers', 'properties'];
+        this.tabs = ['imageLibrary', 'commonProperties', 'settings', 'layers', 'properties', 'objectsGalery'];
 
         this.createTabs();
         this.bindHTML();
 
+        this.htmlLibrary = new HtmlLibrary(this.imageLibraryContent, this.editor, 'dropImage');
+        this.objectsGalery = new HtmlLibrary(this.objectsGaleryContent, this.editor, 'dropObject');
+        this.objectsGalery.addFiles([
+            {name: "LabelObject", url: 'assets/images/_text_icon.png'},
+            {name: "ContainerObject", url: 'assets/images/_container.png'},
+            {name: "GenericObject", url: 'assets/images/_cube.png'}
+        ]);
+        //TODO set data to objects galery
         this.tree = new LayersTree(this.editor, this);
 
     };
@@ -99,11 +107,13 @@
         var action = data.getData('action');
 
         if (action === 'dropImage') {
-            var imageID = data.getData('imageID');
-            var id = imageID.replace('_i_m_a_g_e_', '');
+            var id = data.getData('id').replace('_i_m_a_g_e_', '');
             this.editor.onLibraryImageDropped(id);
         } else if (action === 'dropLabel') {
             this.editor.onLabelDropped();
+        } else if (action === 'dropObject') {
+            var id = data.getData('id').replace('_i_m_a_g_e_', '');
+            this.editor.onGalleryObjectDropped(id);
         }
 
     };
@@ -138,11 +148,11 @@
 
     HtmlInterface.prototype.onCommonProperties = function () {
         this.editor.propertiesBinder.bindSelected();
-        
+
     };
 
     HtmlInterface.prototype.onProperties = function () {
-        
+
         if (this.editor.selectedObjects.length) {
 
             if (this.editor.selectedObjects.length === 1) {
@@ -156,6 +166,10 @@
     HtmlInterface.prototype.onLayers = function () {
         // create layers tree
         this.tree.build();
+    };
+
+    HtmlInterface.prototype.onObjectsGalery = function () {
+        this.objectsGalery.show();
     };
 
     ////////////////////////////////// BIND METHODS
@@ -175,8 +189,8 @@
         var data = this.editor.importer.export();
 
         var jsonString = JSON.stringify(data);
-
-        store.set('editor-saved-content', jsonString);
+        
+        store.set(ContentManager.baseURL + 'editor-saved-content', jsonString);
 
         toastr.success('The content was saved into browsers memory', "Local Save!");
 
@@ -216,7 +230,7 @@
     HtmlInterface.prototype.onImportJSONBtn = function (evt) {
 
         var files = evt.target.files; // FileList object        
-        
+
         var importer = this.editor.importer;
         importer.clearStage();
 
@@ -234,9 +248,9 @@
             // Closure to capture the file information.
             reader.onload = (function (theFile) {
                 return function (e) {
-                   var data = JSON.parse(e.target.result);
-                   importer.import(data);
-                   toastr.success('File Imported with success.');
+                    var data = JSON.parse(e.target.result);
+                    importer.import(data);
+                    toastr.success('File Imported with success.');
                 };
             })(f);
 

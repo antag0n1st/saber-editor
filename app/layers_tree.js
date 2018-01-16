@@ -63,6 +63,18 @@
                 },
                 LabelObject: {
                     icon: 'fa fa-font'
+                },
+                InputObject: {
+                    icon: 'fa fa-keyboard-o'
+                },
+                ButtonObject: {
+                    icon: 'fa fa-square-o'
+                },
+                ContainerObject: {
+                    icon: 'fa fa-th-large'
+                },
+                GenericObject: {
+                    icon: 'fa fa-cube'
                 }
             }
 

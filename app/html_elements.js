@@ -181,7 +181,7 @@
         if (displayName === name) {
             displayName = displayName.replace('_', ' ').capitalize();
         }
-        
+
         var checked = options.checked;
 
 
@@ -207,6 +207,86 @@
 
         return {html: html, id: id, feedbackID: null};
 
+    };
+
+    var colorPickerOpt = {
+        name: '',
+        displayName: '',
+        class: '',
+        value: ''
+    };
+
+    HtmlElements.createColorPicker = function (options) {
+
+
+        var className = options.class || 'big';
+        options.method = options.method || "propertiesBinder.onPropertyChange";
+
+        var name = options.name || '';
+        var displayName = options.displayName || name;
+        if (displayName === name) {
+            displayName = displayName.replace('_', ' ').capitalize();
+        }
+
+        var value = options.value || '#DD0F20';
+
+        var style = options.style || ''; // margin-top: 10px; width: 165px;
+
+
+        var id = "htmlElementId-" + PIXI.utils.uid();
+
+
+        var html = '<div class="' + className + ' ' + (options.feedback ? 'has-feedback' : '') + '">';
+        html += '<label ';
+        html += '>';
+        html += displayName + ': </label>';
+
+        html += '<div id="' + id + '" class="input-group colorpicker-component" style="margin-left:4px;' + style + '">';
+        html += ' <input ';
+        html += ' class="form-control" ';
+        html += ' type="text" ';
+        html += ' value="' + value + '" ';
+        html += ' />';
+        html += '<span class="input-group-addon"><i></i></span>';
+        html += '</div>';
+
+
+        return {html: html, id: id, feedbackID: null, options: options};
+
+    };
+
+    HtmlElements.activateColorPicker = function (picker) {
+        
+
+        var colorPicker = $('#' + picker.id).colorpicker({
+            useAlpha: false,
+            customClass: 'colorpicker-2x',
+            sliders: {
+                saturation: {
+                    maxLeft: 200,
+                    maxTop: 200
+                },
+                hue: {
+                    maxTop: 200
+                },
+                alpha: {
+                    maxLeft: 0,
+                    maxTop: 100,
+                    callLeft: false,
+                    callTop: false
+                }}
+        });
+
+        colorPicker.on('changeColor', function (e) {
+            'use strict';
+            
+           var value = e.color.toHex()
+            
+            eval('app.navigator.currentScreen.' + picker.options.method + '(\'' + picker.options.name + '\',value,this,null,null);');
+            //  
+            // that.onTextColorChange(e.color.toHex());
+
+        });
     };
 
     window.HtmlElements = HtmlElements;

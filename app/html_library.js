@@ -1,30 +1,30 @@
 (function (window, undefined) {
 
 
-    function HtmlLibrary(htmlInterface, editor) {
-        this.initialize(htmlInterface, editor);
+    function HtmlLibrary(displayContainer, editor, actionName) {
+        this.initialize(displayContainer, editor, actionName);
     }
 
-    HtmlLibrary.prototype.initialize = function (htmlInterface, editor) {
+    HtmlLibrary.prototype.initialize = function (displayContainer, editor, actionName) {
 
-        this.htmlInterface = htmlInterface;
         this.editor = editor;
 
         this.files = [];
 
         this.path = [];
 
+        this.displayContainer = displayContainer;
+
+        this.actionName = actionName;
 
     };
 
-    HtmlLibrary.prototype.setFiles = function (files) {
-        this.files = files;
+    HtmlLibrary.prototype.setAction = function (actionName) {
+        this.actionName = actionName;
     };
 
     HtmlLibrary.prototype.addFiles = function (files) {
-
         this.files = files;
-
     };
 
     HtmlLibrary.prototype.getImagesAtPath = function () {
@@ -37,7 +37,6 @@
 
     HtmlLibrary.prototype.build = function () {
 
-        var html = '';
         var children = [];
 
         var files = this.files;
@@ -68,11 +67,12 @@
 
         }
 
-        this.htmlInterface.imageLibraryContent.innerHTML = '';
+        // this.htmlInterface.imageLibraryContent.innerHTML = '';
+        this.displayContainer.innerHTML = '';
         for (var i = 0; i < children.length; i++) {
             var child = children[i];
 
-            this.htmlInterface.imageLibraryContent.appendChild(child);
+            this.displayContainer.appendChild(child);
         }
 
 
@@ -88,14 +88,14 @@
         }
 
 
-        this.htmlInterface.imageLibraryContent.style.height = (app.device.windowSize().height - 120) + 'px';
+        this.displayContainer.style.height = (app.device.windowSize().height - 120) + 'px';
 
 
     };
 
     HtmlLibrary.prototype.dragStart = function (ev) {
-        ev.dataTransfer.setData("imageID", ev.target.id);
-        ev.dataTransfer.setData("action", 'dropImage');
+        ev.dataTransfer.setData("id", ev.target.id);
+        ev.dataTransfer.setData("action", this.actionName);
     };
 
 
@@ -173,7 +173,7 @@
         this.path.push(event.target['data-path']);
         this.build();
     };
-    
+
     HtmlLibrary.prototype.backClick = function (event) {
         this.path.pop();
         this.build();

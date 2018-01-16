@@ -65,6 +65,8 @@
         <script src="app/objects/layer.js" type="text/javascript"></script>
         <script src="app/objects/button_object.js" type="text/javascript"></script>
         <script src="app/objects/input_object.js" type="text/javascript"></script>
+        <script src="app/objects/generic_object.js" type="text/javascript"></script>
+        <script src="app/objects/container_object.js" type="text/javascript"></script>
 
         <script src="app/commands/commands.js" type="text/javascript"></script>
         <script src="app/commands/command_batch.js" type="text/javascript"></script>
@@ -104,7 +106,7 @@
             <div id="side-toolbar-navigation">
                 <div id="commonPropertiesTab" class="nav-bar-btn fa fa-file fa-2x "></div>
                 <div id="propertiesTab" class="nav-bar-btn fa fa-list fa-2x"></div>
-                <div class="nav-bar-btn fa fa-search fa-2x"></div>
+                <div id="objectsGaleryTab" class="nav-bar-btn fa fa-cube fa-2x"></div>
                 <div id="layersTab" class="nav-bar-btn fa fa-clone fa-2x"></div>                
                 <div id="imageLibraryTab" class="nav-bar-btn fa fa-image fa-2x"></div>
                 <div id="settingsTab" class="nav-bar-btn fa fa-cog fa-2x"></div>
@@ -153,12 +155,18 @@
 
                     </div>
                 </div>
+                
+                <div id="objectsGaleryPanel" class="form-inline none">
+                    <div id="objectsGaleryContent" class="libraryContent">
+
+                    </div>
+                </div>
 
                 <div id="imageLibraryPanel" class="none">
                     <div>
                         <input class="form-control" id="localFileLoaderBtn" type="file" webkitdirectory mozdirectory msdirectory odirectory directory multiple="multiple" />
                     </div>
-                    <div id="imageLibraryContent" >
+                    <div id="imageLibraryContent" class="libraryContent" >
 
                     </div>
                 </div>

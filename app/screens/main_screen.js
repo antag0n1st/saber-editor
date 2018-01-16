@@ -82,12 +82,33 @@
 
     };
 
+    MainScreen.prototype.onGalleryObjectDropped = function (id) {
+
+        if (id === "GenericObject") {
+            var object = new GenericObject();
+            object.build();
+        } else if (id === "LabelObject") {
+            var object = new LabelObject('Text');
+            object.build();
+        } else if (id === "ContainerObject") {
+            var object = new ContainerObject();
+            object.build();
+        }
+
+
+        if (object) {
+            this.placeObjectOnScreen(object);
+        } else {
+            console.warn("You need to define an object before droping it to the screen!");
+        }
+
+    };
+
     MainScreen.prototype.onLibraryImageDropped = function (id) {
 
         var object = new ImageObject(id);
         object.build();
         this.placeObjectOnScreen(object);
-
     };
 
     MainScreen.prototype.onLabelDropped = function () {
@@ -734,7 +755,7 @@
     };
 
     MainScreen.prototype.importSavedData = function () {
-        var jsonData = store.get('editor-saved-content');
+        var jsonData = store.get(ContentManager.baseURL + 'editor-saved-content');
         if (jsonData) {
             var data = JSON.parse(jsonData);
             this.importer.import(data);

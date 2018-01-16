@@ -19,7 +19,7 @@
         this.backgroundName = imageName;
 
         this.label = new Label(Style.DEFAULT_INPUT);
-        this.label.txt = 'Placeholder';
+        this.label.txt = 'Text';
         this.label.style.fill = "#ffffff";
         this.label.style.fontSize = 40;
         this.label.anchor.set(0.5, 0.5);
@@ -40,7 +40,8 @@
             sensorWidth: 0,
             sensorHeight: 0,
             hasPlaceholder: false,
-            hasNext : false
+            hasNext : false,
+            placeholderColor: '#555555'
         };
 
     };
@@ -132,7 +133,13 @@
         this.background.padding = this.properties.padding;
         this.background.setSize(this.properties.width, this.properties.height);
 
-        this.label.visible = this.properties.hasPlaceholder;
+       // this.label.visible = this.properties.hasPlaceholder;
+       
+       if(this.properties.hasPlaceholder){
+           // change the color
+       } else {
+           
+       }
 
         this.enableSensor();
 
@@ -161,15 +168,20 @@
 
         var opt7 = {name: 'hasPlaceholder', checked: this.properties.hasPlaceholder, method: method, displayName: 'Is Active'};
         var opt8 = {name: 'hasNext', checked: this.properties.hasNext, method: method, displayName: 'Has Next'};
+        
+        var opt9 = {name: 'placeholderColor', method: method, displayName: 'Color' , value: this.properties.placeholderColor };
 
         html += HtmlElements.createInput(opt0).html;
         html += HtmlElements.createInput(opt1).html;
 
         var padding = HtmlElements.createInput(opt2);
+        var colorPicker = HtmlElements.createColorPicker(opt9);
+        
         html += padding.html;
         html += HtmlElements.createCheckbox(opt8).html;
         html += HtmlElements.createSection('Placeholder').html;
         html += HtmlElements.createCheckbox(opt7).html;
+        html += colorPicker.html;
         html += HtmlElements.createSection('Sensor').html;
         html += HtmlElements.createInput(opt5).html;
         html += HtmlElements.createInput(opt6).html;
@@ -178,10 +190,13 @@
 
         // adjust feedback
         HtmlElements.setFeedback(padding.feedbackID, this.isPaddingValid());
+        HtmlElements.activateColorPicker(colorPicker);
 
     };
 
     InputObject.prototype.onPropertyChange = function (editor, property, value, element, inputType, feedbackID) {
+        
+       
 
         if (property === 'padding') {
             HtmlElements.setFeedback(feedbackID, this.isPaddingValid());
@@ -196,9 +211,6 @@
 
             this.background.padding = this.properties.padding;
             this.background.setSize(this.properties.width, this.properties.height);
-            this.label.visible = this.properties.hasPlaceholder;
-            // this.label.position.set(this.properties.offsetX, this.properties.offsetY);
-            //  this.label.rotation = this.properties.labelRotation;
 
             this.updateSize();
             this.updateSensor();

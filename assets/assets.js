@@ -11,6 +11,7 @@ App.prototype.loadAssets = function () {
 
 
 
+ContentManager.addFile('stage','assets/data/stage.json');
 
 
 
@@ -19,6 +20,9 @@ App.prototype.loadAssets = function () {
 
 
 
+ContentManager.addImage('_container','_container.png');
+ContentManager.addImage('_cube','_cube.png');
+ContentManager.addImage('_text_icon','_text_icon.png');
 
 ContentManager.addImage('favicon','favicon.png');
 ContentManager.addImage('folder_icon','folder_icon.png');

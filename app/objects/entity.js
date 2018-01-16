@@ -35,6 +35,8 @@
 
         this.constraintX = null;
         this.constraintY = null;
+        
+        this.className = '';
 
 
     };
@@ -336,6 +338,7 @@
         o.children = [];
         o.type = this.type;
         o.id = this.id;
+        o.className = this.className;
 
         if (this.properties) {
             o.properties = this.properties;
@@ -370,6 +373,7 @@
         this.rotation = data.rotation;
         this.alpha = data.alpha;
         this.type = data.type;
+        this.className = data.className || '';
 
         if (data.properties) {
 

@@ -177,7 +177,7 @@ body{
 
 }
 
-#imageLibraryContent{
+.libraryContent{
     overflow-y: scroll;
     padding-top: 10px;
 }
