@@ -135,7 +135,7 @@
             for (var i = 0; i < selectedNodes.length; i++) {
                 var sn = selectedNodes[i];
                 var object = editor.findById(sn.data.id);
-                if(!object){
+                if (!object || !object.visible) {
                     return;
                     //
                 }
@@ -205,7 +205,7 @@
                 var menu = {
 
                 };
-                
+
                 var item = editor.findById(node.data.id);
 
                 if (node.type === 'Layer') {
@@ -214,18 +214,18 @@
                         label: "Edit",
                         action: function (data) {
                             //TODO
-                           // edit the layer
-                           
-                           
-                           $("#addLayerModal").modal('show');
+                            // edit the layer
+
+
+                            $("#addLayerModal").modal('show');
 
                             document.getElementById('layerName').value = item.name;
                             document.getElementById('layerFactor').value = item.factor;
-                            document.getElementById('layerID').value = item.id;                            
+                            document.getElementById('layerID').value = item.id;
                             document.getElementById('layerInputContent').checked = item.isInputContent;
-                            
-                            
-                           
+
+
+
                         }.bind(this),
                         icon: 'fa fa-pencil'
                     };
@@ -282,12 +282,40 @@
         };
     };
 
+    LayersTree.prototype.clickOnEye = function (e, element) {
+        e.stopPropagation();
+
+        var object = this.editor.findById(element.dataset.id);
+
+        object.visible = !object.visible;
+
+        element.className = element.className.replace('fa fa-eye', '');
+        element.className = element.className.replace('fa fa-low-vision', '');
+
+        element.className += object.visible ? "fa fa-eye" : "fa fa-low-vision";
+        
+        this.editor.deselectAllObjects();
+
+        return false;
+    };
+
     LayersTree.prototype.parseChildren = function (object) {
 
         var name = object.name || object.imageName || object.type;
+        
+        if(!object.id.startsWith('_change_it_before_use')){
+           name = object.id; 
+        }
+
+        var visibility = '';
+        visibility += '<i class="fa ' + (object.visible ? 'fa-eye' : 'fa-low-vision') + '" ';
+        visibility += ' onclick="return app.navigator.currentScreen.htmlInterface.tree.clickOnEye(event,this)"  ';
+        visibility += ' data-visible="' + object.visible + '" ';
+        visibility += ' data-id="' + object.id + '" ';
+        visibility += ' ></i> ';
 
         var data = {
-            text: name,
+            text: visibility + name,
             children: [],
             type: object.type,
             data: {

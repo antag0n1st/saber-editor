@@ -212,13 +212,18 @@
 
     // check agianst the selection rectangle
     MainScreen.prototype.checkSelection = function (x, y, width, height, children) {
-
-        children = children ? children : this.activeLayer.children;
+        
+        if(this.activeLayer.visible){
+            children = children ? children : this.activeLayer.children;
+        } else {
+            children = children ? children : [];
+        }
+        
 
         for (var i = children.length - 1; i >= 0; i--) {
             var object = children[i];
 
-            if (!object.export) {
+            if (!object.export || !object.visible) {
                 continue;
             }
 
@@ -254,7 +259,8 @@
 
             var object = children[i];
 
-            if (!object.export) {
+            if (!object.export || !object.visible) {
+
                 continue;
             }
 
@@ -281,21 +287,10 @@
         for (var i = children.length - 1; i >= 0; i--) {
             var object = children[i];
 
-            if (!object.export) {
+            if (!object.export || !object.visible) {
                 continue;
             }
 
-//            var foundObject = this.checkSelectedObjects(object.children, event);
-//
-//            if (foundObject) {
-//                return foundObject;
-//            }
-
-            // check handles only for selected items
-
-
-            // TODO REMOVE this.handleTouchedType = 
-            // this.isHandleTouched = true;
 
             if (object.checkHandles(event.point)) {
 
@@ -339,8 +334,11 @@
             return;
         }
 
+        var object = null;
         // recursivly check if an object was clicked down
-        var object = this.checkPointInChildren(this.activeLayer.children, event);
+        if (this.activeLayer.visible) {
+            object = this.checkPointInChildren(this.activeLayer.children, event);
+        }
 
         if (object) {
 
@@ -390,6 +388,7 @@
             this.deselectAllObjects();
         }
 
+
     };
 
     MainScreen.prototype.onMouseMove = function (event, sender) {
@@ -402,8 +401,11 @@
             this.moveScreenTo(p);
             return;
         } else if (this.shortcuts.isCtrlPressed) {
-
-            var object = this.checkPointInChildren(this.activeLayer.children, event);
+            var object = null;
+            if(this.activeLayer.visible){
+                object = this.checkPointInChildren(this.activeLayer.children, event);
+            }
+            
             if (object) {
 
                 var isSelected = false;

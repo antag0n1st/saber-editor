@@ -339,6 +339,7 @@
         o.type = this.type;
         o.id = this.id;
         o.className = this.className;
+        o.visible = this.visible;
 
         if (this.properties) {
             o.properties = this.properties;
@@ -374,6 +375,7 @@
         this.alpha = data.alpha;
         this.type = data.type;
         this.className = data.className || '';
+        this.visible = (data.visible === undefined) ? true : data.visible;
 
         if (data.properties) {
 
